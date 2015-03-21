@@ -1,0 +1,86 @@
+apply(plugin: "java");
+
+group = "es.litesolutions";
+version = "0.1.0-SNAPSHOT";
+description = "Grappa integration for Sonar's SSLR";
+
+def javaVersion = JavaVersion.VERSION_1_7;
+sourceCompatibility = javaVersion;
+targetCompatibility = javaVersion; // defaults to sourceCompatibility
+
+/*
+ * List of dependencies
+ */
+dependencies {
+    compile(group: "org.codehaus.sonar.sslr", name: "sslr", version: "1.20");
+    compile(group: "org.codehaus.sonar.sslr-squid-bridge",
+        name: "sslr-squid-bridge", version: "2.5.3");
+    compile(group: "com.github.fge", name: "grappa-tracer-backport",
+        version: "2.0.0");
+    testCompile(group: "org.testng", name: "testng", version: "6.8.21") {
+        exclude(group: "org.apache.ant", module: "ant");
+        exclude(group: "com.google.inject", module: "guice");
+        exclude(group: "junit", module: "junit");
+        exclude(group: "org.beanshell", module: "bsh");
+        exclude(group: "org.yaml", module: "snakeyaml");
+    };
+    testCompile(group: "org.mockito", name: "mockito-core", version: "1.10.19");
+    testCompile(group: "org.assertj", name: "assertj-core", version: "1.7.1");
+    testCompile(group: "org.codehaus.sonar.sslr", name: "sslr-testing-harness",
+        version: "1.20") {
+        exclude(group: "junit", module: "junit");
+        exclude(group: "org.easytesting", module: "fest-assert");
+    };
+}
+
+javadoc.options.links("http://docs.oracle.com/javase/7/docs/api/");
+
+/*
+ * Repositories to use
+ */
+repositories {
+    mavenCentral();
+}
+
+task enforceVersion << {
+    def foundVersion = JavaVersion.current();
+    if (foundVersion != javaVersion)
+        throw new IllegalStateException("Wrong java version; required is " +
+            javaVersion + ", but found " + foundVersion);
+}
+
+compileJava.dependsOn(enforceVersion);
+
+/*
+ * Necessary! Otherwise TestNG will not be used...
+ */
+test {
+    useTestNG() {
+        useDefaultListeners = true;
+    };
+}
+
+/*
+ * Necessary to generate the source and javadoc jars
+ */
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = "sources";
+    from sourceSets.main.allSource;
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = "javadoc";
+    from javadoc.destinationDir;
+}
+
+artifacts {
+    archives jar;
+    archives sourcesJar;
+    archives javadocJar;
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = "2.3";
+    distributionUrl = "http://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip";
+}
+
