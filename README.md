@@ -52,7 +52,7 @@ JSON, as defined by RFC
 
 There are many advantages to proceeding this way:
 
-### Grappa can do much more any other Channel
+### Grappa can do much more than any other Channel
 
 It's a full fledged parser after all! Here is how, for instance, you would match text between
 parens, WITH included, matching parens:
