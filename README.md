@@ -179,9 +179,8 @@ public Rule thatIsBetter()
 
 ## Technical notes...
 
-Unfortunately, Sonar uses an antiquated version of Guava (10.0.1!!); grappa, on the other hand,
-depends on Guava 18.0.
+This package uses a specialized version of the grappa-tracer-backport.
 
-This means that right now two files from Sonar itself had to be included in the source of this
-package so that the code can actually run. This problem is not yet solved.
+This is to work around the fact that a Sonar plugin requires a very old version
+of Guava (10.0.1!!) whereas grappa depends on Guava 18.0.
 

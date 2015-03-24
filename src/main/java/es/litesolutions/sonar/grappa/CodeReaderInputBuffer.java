@@ -17,10 +17,6 @@
 package es.litesolutions.sonar.grappa;
 
 import com.github.parboiled1.grappa.buffers.LineCounter;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Range;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.parboiled.buffers.CharSequenceInputBuffer;
 import org.parboiled.buffers.InputBuffer;
 import org.parboiled.support.Chars;
@@ -28,10 +24,15 @@ import org.parboiled.support.IndexRange;
 import org.parboiled.support.Position;
 import org.sonar.sslr.channel.CodeBuffer;
 import org.sonar.sslr.channel.CodeReader;
+import sonarhack.com.google.common.base.Preconditions;
+import sonarhack.com.google.common.collect.Range;
+import sonarhack.com.google.common.util.concurrent.Futures;
+import sonarhack.com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import java.nio.CharBuffer;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -64,7 +65,7 @@ public final class CodeReaderInputBuffer
 
     public CodeReaderInputBuffer(@Nonnull final CodeReader reader)
     {
-        this.reader = Preconditions.checkNotNull(reader);
+        this.reader = Objects.requireNonNull(reader);
         lineCounter = EXECUTOR_SERVICE.submit(new Callable<LineCounter>()
         {
             @Override
