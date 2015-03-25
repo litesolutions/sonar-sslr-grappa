@@ -1,4 +1,5 @@
 apply(plugin: "java");
+apply(plugin: "maven");
 
 group = "es.litesolutions";
 version = "0.1.0-SNAPSHOT";
