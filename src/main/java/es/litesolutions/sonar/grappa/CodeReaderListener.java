@@ -1,6 +1,5 @@
 package es.litesolutions.sonar.grappa;
 
-import com.github.parboiled1.grappa.backport.EventBasedParseRunner;
 import com.github.parboiled1.grappa.backport.ParseRunnerListener;
 import com.github.parboiled1.grappa.backport.events.MatchFailureEvent;
 import com.github.parboiled1.grappa.backport.events.MatchSuccessEvent;
@@ -12,7 +11,6 @@ import org.parboiled.MatcherContext;
 import org.parboiled.matchers.Matcher;
 import org.parboiled.support.ParsingResult;
 import org.parboiled.support.ValueStack;
-import org.sonar.sslr.channel.Channel;
 import org.sonar.sslr.channel.CodeReader;
 
 import java.net.URI;
@@ -29,15 +27,27 @@ import java.util.List;
  *
  * <p>For this, it captures the root matcher obtained from the initial context
  * (see {@link #beforeParse(PreParseEvent)}) and waits for this matcher to
- * reappear at level 0. When it reappears, it means the parsing is done, whether
- * successful or not.</p>
+ * reappear <strong>at level 0 of the parsing tree</strong> (after all, this
+ * same rule may be invoked recursively!). When it reappears, it means the
+ * parsing is done, whether successful or not.</p>
  *
- * <p>After the parsing is done, the consumed characters are {@link
- * CodeReader#pop() popped} from the reader and the recorded tokens are added
- * to the lexer.</p>
+ * <p>Once the parsing is completed (see {@link #afterParse(PostParseEvent)},
+ * two conditions must be fulfilled:</p>
+ *
+ * <ul>
+ *     <li>the root matcher has succeeded;</li>
+ *     <li><strong>all</strong> characters from the {@code CodeReader} have been
+ *     consumed.</li>
+ * </ul>
+ *
+ * <p>If one of those two conditions fail, an {@link IllegalStateException} will
+ * be thrown with the appropriate message.</p>
+ *
+ * <p>If both succeeds, the listener will pop all {@link Token.Builder}
+ * instances from the stack and add them (in reverse order!) to the {@link
+ * Lexer} provided as an argument.</p>
  *
  * @see Channel#consume(CodeReader, Object)
- * @see EventBasedParseRunner
  * @see SonarParserBase
  */
 public final class CodeReaderListener
