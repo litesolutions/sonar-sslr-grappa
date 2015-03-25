@@ -19,7 +19,7 @@ dependencies {
      * Needed so that we don't get conflicts with Sonar's old Guava dependency
      */
     compile(group: "com.github.fge", name: "grappa-tracer-backport",
-        version: "2.0.0-sonar");
+        version: "2.0.0.1-sonar");
     testCompile(group: "org.testng", name: "testng", version: "6.8.21") {
         exclude(group: "org.apache.ant", module: "ant");
         exclude(group: "com.google.inject", module: "guice");
