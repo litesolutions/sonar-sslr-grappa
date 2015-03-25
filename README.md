@@ -11,6 +11,12 @@ This package is a sample implementation of an SSLR `Channel` using a parser writ
 
 Requires Java 7+.
 
+The current version is **0.1.0**:
+
+* groupId: `es.litesolutions`;
+* artifactId: `sonar-sslr-grappa`;
+* version: `0.1.0`.
+
 ## Rationale
 
 SSLR means SonarSource Language Recognizer. This is the mechanism used by SonarQube to match and
