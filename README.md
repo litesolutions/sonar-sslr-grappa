@@ -17,36 +17,43 @@ The current version is **0.1.0**:
 * artifactId: `sonar-sslr-grappa`;
 * version: `0.1.0`.
 
-## Rationale
+## About SSLR
 
-### About SSLR
+### Principle
 
-SSLR means SonarSource Language Recognizer. This is the mechanism used by SonarQube to match and
-tokenize languages. It relies on three elements:
+SSLR means SonarSource Language Recognizer. This is the framework used by
+SonarQube to match and tokenize languages and build an AST (Abstract Syntax
+Tree).
 
-* `TokenType`s, which are your individual tokens;
-* `Channel`s, to parse the language and produce these tokens;
-* `GrammarRuleKey`s to aggregate tokens into logical units and ultimately
-  produce an AST (Abstract Syntax Tree).
+An AST in Sonar is a sequence of `AstNode` instances; those same `AstNode`s are
+what your language checks will subscribe to and perform checks upon the `Token`
+associated with this node (or its parent(s), sibling(s), child(ren) etc).
 
-For instance, provided that you have tokens `NUMBER` and `OPERATOR`, and rule
-keys `EXPRESSION` and `EXPRESSIONS`, a (simplified!) sample grammar could read:
+There are two builtin mechanism by which you can produce an AST.
 
-```java
-build.rule(EXPRESSION).is(NUMBER, OPERATOR, NUMBER);
-builder.rule(EXPRESSIONS).is(builder.oneOrMore(EXPRESSION));
-```
+### Using a `LexerlessGrammarBuilder`
 
-### The trick...
+In this method, an SSLR grammar takes upon itself to guide both the token/AST
+node production _and_ parsing. Using this method, terminals (that is, grammar
+rules which do not depend on any other rules) are sequences of text in the
+input.
 
-Now, the above grammar relies only on tokens, regardless of whatever those
-tokens are (after all, those `NUMBER`s could very well be Roman numerals for all
-the grammar cares). The channels (**note the final 's'**) are there to parse
-your input and produce those tokens...
+While very flexible, writing such a grammar is very involved; more often than
+not, for languages even moderately complex, this means implementing quite a few
+helper classes to properly guide the AST node and token production.
 
-But writing those channels can be challenging.
+Two examples of Sonar plugins written using this technique are Java and
+JavaScript language plugins.
 
-Here is a quick rundown of how the tokenizing process goes:
+### Using a `LexerfulGrammarBuilder`
+
+Using this method,  your grammar rules are purely declarative in that their
+terminals are `TokenType`s, not input text. And matching the input text to
+produce tokens is delegated to another mechanism, and this other mechanism is
+channels.
+
+While this mechanism looks easier to work with, channels have their own
+challenges as well. Here is how channel dispatching works:
 
 * A dispatcher invokes the channels. Those channels run one by one, and the
   first one which succeeds wins.
@@ -54,7 +61,7 @@ Here is a quick rundown of how the tokenizing process goes:
 * amount of tokens, including none.
 * This process goes on repeatedly until no text of the input is left to match.
 
-However, there are a few pitfalls:
+The consequences are as follows:
 
 * you can end up with a lot of channels;
 * you must account for the order in which your channels are declared;
@@ -62,110 +69,67 @@ However, there are a few pitfalls:
   order to avoid this channel to match at any given point in your parsed input,
   etc.
 
-### What this package does instead
+One example of a Sonar plugin using this technique is Python.
 
-With this package, there is only one channel; and this channel is a parser
-written using [grappa](https://github.com/fge/grappa). Therefore, the lexer is
-reduced to this:
+## What this package does instead
 
-```java
-final MyLanguageParser parser = Parboiled.createParser(MyLanguageParser.class);
+### The grammar is fully declarative...
 
-final Channel<Lexer> channel = new GrappaChannel(parser.theRule());
+That is, you use a `LexerfulGrammarBuilder` and your terminals are (usually)
+`TokenType`s...
 
-final Lexer lexer = Lexer.builder()
-    .withFailIfNoChannelToConsumeOneCharacter(true)
-    .withChannel(channel)
-    .build();
-```
+### But you only have one channel
 
-This channel provides convenience methods to match tokens by value and a few
-other things.
+... And this channel is a [grappa](https://github.com/fge/grappa) parser.
 
 Should you wonder what a grappa parser looks like, [here is a JSON
 parser](https://github.com/fge/grappa-examples/blob/master/src/main/java/com/github/fge/grappa/examples/json/JsonParser.java).
 
 ## Advantages
 
-### Easier to write complex parsing rules
+### Separation of concerns
 
-Here is how, for instance, you would match text between parens, WITH included,
-matching parens:
+You write your grammar so that you are only concerned about how your AST should
+look like; you need not be concerned about what those tokens will actually look
+like.
 
-```java
+If anything, the elements of your language plugins which could care about the
+actual content of the tokens are your checks -- not the grammar.
 
-// Even matches no text at all
-public Rule embeddedParens()
+### Ease of debugging
+
+Grappa provides the following tools to help you:
+
+* a [tracer](https://github.com/fge/grappa-tracer-backport), with which you can
+  record your parsing run;
+* a [debugger](https://github.com/fge/grappa-debugger), with which you can
+  analyze your parsing run.
+
+Right now, this is not configurable (this is in the plans) and the currently
+provided channel will unconditionally record the trace file in `/tmp/trace.zip`
+(yes, that's a Unix path; sorry...). The intent is to make this configurable in
+the near future.
+
+### Versatility
+
+Grappa is a full fledged PEG parser; and it has mechanisms to help you get
+things done which go beyond PEG as well. For instance, the famous "a^n b^n c^n"
+grammar can be matched with this single rule:
+
+```
+// Supposes Java 7+
+public Rule anbncn()
 {
-    return join(zeroOrMore(noneOf("()"))
-        .using(sequence('(', embeddedParens(), ')')
-        .min(0);
+    final Var<Integer> count = new Var<>();
+    return sequence(
+        oneOrMore('a'), count.set(match().length()),
+        oneOrMore('b'), match().length() == count.get(),
+        oneOrMore('c'), match().length() == count.get()
+    );
 }
 ```
 
-### Easy to debug
-
-Suppose you have a complex set of `GrammarRuleKey`s; you have a root rule to set in order for a
-Sonar `Parser` to be legal.
-
-Now, you may want to test only _part_ of your grammar.
-
-With this package, and provided you write your grammar rule implementation accordingly, it's
-very easy:
-
-```java
-
-        /*
-         * Initialize your language parser and your rule
-         */
-
-        final MyParser parser
-            = Parboiled.createParser(MyParser.class);
-        final Rule rule = parser.someRule();
-        final Channel<Lexer> channel = new GrappaChannel(rule);
-
-        /*
-         * Initialize the lexer; only one channel!
-         */
-
-        final Lexer lexer = Lexer.builder()
-            .withFailIfNoChannelToConsumeOneCharacter(true)
-            .withChannel(channel)
-            .build();
-
-        /*
-         * Initialize your rules; here we take the example of a grammar which
-         * has no root rule, but which we inject into a builder.
-         *
-         * Match the GrammarRuleKey with the grappa parser rule.
-         */
-
-        final LexerfulGrammarBuilder builder = LexerfulGrammarBuilder.create();
-        MyGrammar.injectInto(builder);
-        builder.setRootRule(MyGrammar.MY_RULE_KEY);
-
-        /*
-         * Finally, create the Grammar object, the Parser object, initialize
-         * the toolkit and run it
-         */
-
-        final Grammar grammar = builder.build();
-
-        final Parser<Grammar> grammarParser = Parser.builder(grammar)
-            .withLexer(lexer).build();
-
-        final Toolkit toolkit = new Toolkit("test",
-            new DummyConfigurationModel(grammarParser));
-
-        toolkit.run();
-```
-
-You then get a toolkit window to test _that_ part of your grammar, and only _that_ part.
-
-Not only that, but you can also modify the channel easily so as to use the
-[grappa debugger](https://github.com/fge/grappa-debugger) to test your parser
-itself, therefore, your channel! Using it you know exactly what parser rules
-matched, in what order, where they were invoked from etc.
+And there is even more than that.
 
 ## How this works
 
