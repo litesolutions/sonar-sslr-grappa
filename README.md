@@ -104,7 +104,7 @@ public Rule embeddedParens()
 }
 ```
 
-### EasY to debug
+### Easy to debug
 
 Suppose you have a complex set of `GrammarRuleKey`s; you have a root rule to set in order for a
 Sonar `Parser` to be legal.
@@ -217,6 +217,22 @@ public Rule thatIsBetter()
 
 This package uses a specialized version of the grappa-tracer-backport.
 
-This is to work around the fact that a Sonar plugin requires a very old version
-of Guava (10.0.1!!) whereas grappa depends on Guava 18.0.
+This is needed because Sonar plugins require an old version of Guava (10.0.1)
+whereas grappa depends on Guava 18.0.
+
+Among other things, this means that if you with to include listeners of yours in
+the parser (which relies on the `@Subscribe` annotation for the appropriate
+methods) you need to include this:
+
+```
+import sonarhack.com.google.common.eventbus.Subscribe;
+```
+
+instead of:
+
+```
+import com.google.common.eventbus.Subscribe;
+```
+
+because the latter is not guaranteed to succeed!
 
