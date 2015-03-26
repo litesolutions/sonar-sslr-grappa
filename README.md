@@ -19,25 +19,56 @@ The current version is **0.1.0**:
 
 ## Rationale
 
+### About SSLR
+
 SSLR means SonarSource Language Recognizer. This is the mechanism used by SonarQube to match and
-tokenize languages. It relies on two main elements:
+tokenize languages. It relies on three elements:
 
-* `Channel`s, to parse the language and produce tokens;
-* `GrammarRuleKey`s to create nodes for the language's AST (Abstract Syntax Tree).
+* `TokenType`s, which are your individual tokens;
+* `Channel`s, to parse the language and produce these tokens;
+* `GrammarRuleKey`s to aggregate tokens into logical units and ultimately
+  produce an AST (Abstract Syntax Tree).
 
-The existing channels provided by SonarQube require that you create [many, many, many of
-them](https://github.com/SonarCommunity/sonar-python/blob/master/python-squid/src/main/java/org/sonar/python/lexer/PythonLexer.java)
-to parse a single language.
+For instance, provided that you have tokens `NUMBER` and `OPERATOR`, and rule
+keys `EXPRESSION` and `EXPRESSIONS`, a (simplified!) sample grammar could read:
 
-What is more, since the channel dispatcher will try all channels (IN THE ORDER IN WHICH YOU DECLARE
-THEM!) you have to make sure that not only the channels are declared in the correct order, but also
-that [your channel includes a lot of boilerplate code](https://github.com/SonarCommunity/sonar-python/blob/master/python-squid/src/main/java/org/sonar/python/lexer/IndentationChannel.java)...
+```java
+build.rule(EXPRESSION).is(NUMBER, OPERATOR, NUMBER);
+builder.rule(EXPRESSIONS).is(builder.oneOrMore(EXPRESSION));
+```
 
-Whereas with this package, it is as simple as:
+### The trick...
 
-* writing a parser for your language,
-* pushing the tokens you need (see below),
-* and writing such a simple lexer as:
+Now, the above grammar relies only on tokens, regardless of whatever those
+tokens are (after all, those `NUMBER`s could very well be Roman numerals for all
+the grammar cares). The channels (**note the final 's'**) are there to parse
+your input and produce those tokens...
+
+But writing those channels can be challenging, especially if your language is
+even moderately complex.
+
+Here is a quick rundown of how the tokenizing process goes:
+
+* A dispatcher invokes the channels. Those channels run one by one, and the
+  first one which succeeds wins;
+* A channel is supposed to match only a limited amount of text, matching a token
+  or more than one; no limit is imposed one way or another. In fact, a given
+  channel may very well match no token at all.
+* This process goes on repeatedly until no text of the input is left to match.
+
+However, proceeding so leads to several problems:
+
+* You can end up with [a lot of channels](https://github.com/SonarCommunity/sonar-python/blob/master/python-squid/src/main/java/org/sonar/python/lexer/PythonLexer.java)...
+* And in order for a channel _not_ to run at a particular point, you can end up
+  writing [a lot of logic into the channel itself](https://github.com/SonarCommunity/sonar-python/blob/master/python-squid/src/main/java/org/sonar/python/lexer/IndentationChannel.java).
+* Last but not least, the channels are run in the order in which you declare
+  them to the lexer!
+
+### What this package does instead
+
+With this package, there is only one channel; and this channel is a parser
+written using [grappa](https://github.com/fge/grappa). Therefore, the lexer is
+reduced to this:
 
 ```java
 final MyLanguageParser parser = Parboiled.createParser(MyLanguageParser.class);
@@ -50,18 +81,17 @@ final Lexer lexer = Lexer.builder()
     .build();
 ```
 
-That's it! 
-
 Should you wonder what a grappa parser looks like, [here is a parser which parses any, and all,
 JSON, as defined by RFC
 7159](https://github.com/fge/grappa-examples/blob/master/src/main/java/com/github/fge/grappa/examples/json/JsonParser.java).
 
-There are many advantages to proceeding this way:
 
-### Grappa can do much more than any other Channel
+## Advantages
 
-It's a full fledged parser after all! Here is how, for instance, you would match text between
-parens, WITH included, matching parens:
+### Easier to write complex parsing rules
+
+Here is how, for instance, you would match text between parens, WITH included,
+matching parens:
 
 ```java
 
@@ -74,14 +104,14 @@ public Rule embeddedParens()
 }
 ```
 
-### Much easier to debug
+### EasY to debug
 
 Suppose you have a complex set of `GrammarRuleKey`s; you have a root rule to set in order for a
 Sonar `Parser` to be legal.
 
 Now, you may want to test only _part_ of your grammar.
 
-Well, with this package, and provided you write your grammar rule implementation accordingly, it's
+With this package, and provided you write your grammar rule implementation accordingly, it's
 very easy:
 
 ```java
@@ -133,10 +163,10 @@ very easy:
 
 You then get a toolkit window to test _that_ part of your grammar, and only _that_ part.
 
-Not only that, but you can also modify the channel easily so as to use the [grappa
-debugger](https://github.com/fge/grappa-debugger) to test your parser itself, that is, your channel!
-Using it you know exactly what parser rules matched, along with some statistics you may also find
-useful.
+Not only that, but you can also modify the channel easily so as to use the
+[grappa debugger](https://github.com/fge/grappa-debugger) to test your parser
+itself, therefore, your channel! Using it you know exactly what parser rules
+matched, in what order, where they were invoked from etc.
 
 ## How this works
 
