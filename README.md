@@ -29,28 +29,28 @@ An AST in Sonar is a sequence of `AstNode` instances; those same `AstNode`s are
 what your language checks will subscribe to and perform checks upon the `Token`
 associated with this node (or its parent(s), sibling(s), child(ren) etc).
 
-There are two builtin mechanism by which you can produce an AST.
+There are two builtin mechanism with which you can produce an AST.
 
 ### Using a `LexerlessGrammarBuilder`
 
 In this method, an SSLR grammar takes upon itself to guide both the token/AST
-node production _and_ parsing. Using this method, terminals (that is, grammar
-rules which do not depend on any other rules) are sequences of text in the
-input.
+node production _and_ parsing of the input text. Using this method, terminals
+(that is, grammar rules which do not depend on any other rules) are sequences of
+text in the input.
 
 While very flexible, writing such a grammar is very involved; more often than
 not, for languages even moderately complex, this means implementing quite a few
-helper classes to properly guide the AST node and token production.
+helper classes to properly guide the parsing process.
 
-Two examples of Sonar plugins written using this technique are Java and
+Two examples of Sonar plugins written using this technique are the Java and
 JavaScript language plugins.
 
 ### Using a `LexerfulGrammarBuilder`
 
 Using this method,  your grammar rules are purely declarative in that their
-terminals are `TokenType`s, not input text. And matching the input text to
-produce tokens is delegated to another mechanism, and this other mechanism is
-channels.
+terminals are `AstNode` instances (more often than not instances of
+`TokenType`), not input text. And matching the input text to produce tokens is
+delegated to another mechanism, and this other mechanism is channels.
 
 While this mechanism looks easier to work with, channels have their own
 challenges as well. Here is how channel dispatching works:
@@ -58,7 +58,7 @@ challenges as well. Here is how channel dispatching works:
 * A dispatcher invokes the channels. Those channels run one by one, and the
   first one which succeeds wins.
 * A channel can match any amount of text, or none at all, and it may produce any
-* amount of tokens, including none.
+  amount of tokens, including none.
 * This process goes on repeatedly until no text of the input is left to match.
 
 The consequences are as follows:
