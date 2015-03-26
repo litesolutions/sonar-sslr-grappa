@@ -44,25 +44,23 @@ tokens are (after all, those `NUMBER`s could very well be Roman numerals for all
 the grammar cares). The channels (**note the final 's'**) are there to parse
 your input and produce those tokens...
 
-But writing those channels can be challenging, especially if your language is
-even moderately complex.
+But writing those channels can be challenging.
 
 Here is a quick rundown of how the tokenizing process goes:
 
 * A dispatcher invokes the channels. Those channels run one by one, and the
-  first one which succeeds wins;
-* A channel is supposed to match only a limited amount of text, matching a token
-  or more than one; no limit is imposed one way or another. In fact, a given
-  channel may very well match no token at all.
+  first one which succeeds wins.
+* A channel can match any amount of text, or none at all, and it may produce any
+* amount of tokens, including none.
 * This process goes on repeatedly until no text of the input is left to match.
 
-However, proceeding so leads to several problems:
+However, there are a few pitfalls:
 
-* You can end up with [a lot of channels](https://github.com/SonarCommunity/sonar-python/blob/master/python-squid/src/main/java/org/sonar/python/lexer/PythonLexer.java)...
-* And in order for a channel _not_ to run at a particular point, you can end up
-  writing [a lot of logic into the channel itself](https://github.com/SonarCommunity/sonar-python/blob/master/python-squid/src/main/java/org/sonar/python/lexer/IndentationChannel.java).
-* Last but not least, the channels are run in the order in which you declare
-  them to the lexer!
+* you can end up with a lot of channels;
+* you must account for the order in which your channels are declared;
+* which means the code of your channel itself may contain a lot of logic in
+  order to avoid this channel to match at any given point in your parsed input,
+  etc.
 
 ### What this package does instead
 
@@ -81,10 +79,11 @@ final Lexer lexer = Lexer.builder()
     .build();
 ```
 
-Should you wonder what a grappa parser looks like, [here is a parser which parses any, and all,
-JSON, as defined by RFC
-7159](https://github.com/fge/grappa-examples/blob/master/src/main/java/com/github/fge/grappa/examples/json/JsonParser.java).
+This channel provides convenience methods to match tokens by value and a few
+other things.
 
+Should you wonder what a grappa parser looks like, [here is a JSON
+parser](https://github.com/fge/grappa-examples/blob/master/src/main/java/com/github/fge/grappa/examples/json/JsonParser.java).
 
 ## Advantages
 
