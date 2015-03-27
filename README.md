@@ -29,11 +29,11 @@ An AST in Sonar is a sequence of `AstNode` instances; those same `AstNode`s are
 what your language checks will subscribe to and perform checks upon the `Token`
 associated with this node (or its parent(s), sibling(s), child(ren) etc).
 
-There are two builtin mechanism with which you can produce an AST.
+The Sonar API provides two mechanisms with which you can produce an AST.
 
 ### Using a `LexerlessGrammarBuilder`
 
-In this method, an SSLR grammar takes upon itself to guide both the token/AST
+Using this method, an SSLR grammar takes upon itself to guide both the token/AST
 node production _and_ parsing of the input text. Using this method, terminals
 (that is, grammar rules which do not depend on any other rules) are sequences of
 text in the input.
@@ -42,8 +42,8 @@ While very flexible, writing such a grammar is very involved; more often than
 not, for languages even moderately complex, this means implementing quite a few
 helper classes to properly guide the parsing process.
 
-Two examples of Sonar plugins written using this technique are the Java and
-JavaScript language plugins.
+Two examples of Sonar language plugins written using this technique are the Java
+and JavaScript language plugins.
 
 ### Using a `LexerfulGrammarBuilder`
 
@@ -65,11 +65,12 @@ The consequences are as follows:
 
 * you can end up with a lot of channels;
 * you must account for the order in which your channels are declared;
-* which means the code of your channel itself may contain a lot of logic in
+* which means that the code of your channel itself may contain a lot of logic in
   order to avoid this channel to match at any given point in your parsed input,
   etc.
 
-One example of a Sonar plugin using this technique is Python.
+One example of a Sonar language plugin using this technique is the Python
+language plugin.
 
 ## What this package does instead
 
@@ -90,8 +91,7 @@ parser](https://github.com/fge/grappa-examples/blob/master/src/main/java/com/git
 ### Separation of concerns
 
 You write your grammar so that you are only concerned about how your AST should
-look like; you need not be concerned about what those tokens will actually look
-like.
+look like; you need not be concerned about what text is matched by those tokens.
 
 If anything, the elements of your language plugins which could care about the
 actual content of the tokens are your checks -- not the grammar.
