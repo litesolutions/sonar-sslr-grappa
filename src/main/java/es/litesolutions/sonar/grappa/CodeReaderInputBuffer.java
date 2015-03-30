@@ -16,18 +16,18 @@
 
 package es.litesolutions.sonar.grappa;
 
-import com.github.parboiled1.grappa.buffers.LineCounter;
-import org.parboiled.buffers.CharSequenceInputBuffer;
-import org.parboiled.buffers.InputBuffer;
-import org.parboiled.support.Chars;
-import org.parboiled.support.IndexRange;
-import org.parboiled.support.Position;
+import com.github.fge.grappa.buffers.CharSequenceInputBuffer;
+import com.github.fge.grappa.buffers.InputBuffer;
+import com.github.fge.grappa.buffers.LineCounter;
+import com.github.fge.grappa.support.Chars;
+import com.github.fge.grappa.support.IndexRange;
+import com.github.fge.grappa.support.Position;
 import org.sonar.sslr.channel.CodeBuffer;
 import org.sonar.sslr.channel.CodeReader;
-import sonarhack.com.google.common.base.Preconditions;
-import sonarhack.com.google.common.collect.Range;
-import sonarhack.com.google.common.util.concurrent.Futures;
-import sonarhack.com.google.common.util.concurrent.ThreadFactoryBuilder;
+import r.com.google.common.base.Preconditions;
+import r.com.google.common.collect.Range;
+import r.com.google.common.util.concurrent.Futures;
+import r.com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
@@ -83,6 +83,35 @@ public final class CodeReaderInputBuffer
             ? reader.charAt(index) : Chars.EOI;
     }
 
+    /**
+     * Returns the Unicode code point starting at a given index
+     * <p>If the index is greater than, or equal to, the buffer's length, this
+     * method returns -1.</p>
+     *
+     * @param index the index
+     * @return the code point at this index, or -1 if the end of input has been
+     * reached
+     *
+     * @throws IllegalArgumentException index is negative
+     */
+    @Override
+    public int codePointAt(final int index)
+    {
+        final int length = reader.length();
+        if (index >= length)
+            return -1;
+        if (index < 0)
+            throw new IllegalArgumentException("index is negative");
+
+        final char c = reader.charAt(index);
+        if (!Character.isHighSurrogate(c))
+            return c;
+        if (index == length - 1)
+            return c;
+        final char c2 = reader.charAt(index + 1);
+        return Character.isLowSurrogate(c2) ? Character.toCodePoint(c, c2) : c;
+    }
+
     @Override
     public boolean test(final int index, final char[] characters)
     {
@@ -121,13 +150,7 @@ public final class CodeReaderInputBuffer
          */
         final Position position
             = Futures.getUnchecked(lineCounter).toPosition(index);
-        return new Position(position.line, position.column - 1);
-    }
-
-    @Override
-    public int getOriginalIndex(final int index)
-    {
-        return index;
+        return new Position(position.getLine(), position.getColumn() - 1);
     }
 
     @Override
@@ -145,9 +168,29 @@ public final class CodeReaderInputBuffer
         return extract(start, end);
     }
 
+    /**
+     * Get the index range matching a given line number
+     *
+     * @param lineNumber the line number
+     * @return the index range
+     */
+    @Override
+    public IndexRange getLineRange(final int lineNumber)
+    {
+        final Range<Integer> range
+            = Futures.getUnchecked(lineCounter).getLineRange(lineNumber);
+        return new IndexRange(range.lowerEndpoint(), range.upperEndpoint());
+    }
+
     @Override
     public int getLineCount()
     {
         return Futures.getUnchecked(lineCounter).getNrLines();
+    }
+
+    @Override
+    public int length()
+    {
+        return reader.length();
     }
 }

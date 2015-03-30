@@ -1,4 +1,4 @@
-package es.litesolutions.sonar.grappa;
+package es.litesolutions.sonar.grappa.tokentypes;
 
 import com.sonar.sslr.api.TokenType;
 
@@ -18,7 +18,7 @@ import javax.annotation.Nullable;
  * </ul>
  */
 public interface ShortValueTokenType
-    extends TokenType
+    extends TokenType, WithValue
 {
     @Nullable
     String getShortValue();

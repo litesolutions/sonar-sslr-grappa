@@ -3,7 +3,7 @@ apply(plugin: "maven");
 apply(plugin: "signing");
 
 group = "es.litesolutions";
-version = "0.1.0";
+version = "0.2.0-SNAPSHOT";
 description = "Grappa integration for Sonar's SSLR";
 
 def javaVersion = JavaVersion.VERSION_1_7;
@@ -14,13 +14,10 @@ targetCompatibility = javaVersion; // defaults to sourceCompatibility
  * List of dependencies
  */
 dependencies {
-    compile(group: "org.codehaus.sonar.sslr", name: "sslr-core",
-        version: "1.20");
-    /*
-     * Needed so that we don't get conflicts with Sonar's old Guava dependency
-     */
-    compile(group: "com.github.fge", name: "grappa-tracer-backport",
-        version: "2.0.0.1-sonar");
+    compile(group: "org.codehaus.sonar.sslr-squid-bridge",
+        name: "sslr-squid-bridge", version: "2.5.3");
+    compile(group: "com.github.fge", name: "grappa",
+        version: "2.0.0-beta.1", classifier: "all");
     testCompile(group: "org.testng", name: "testng", version: "6.8.21") {
         exclude(group: "org.apache.ant", module: "ant");
         exclude(group: "com.google.inject", module: "guice");
