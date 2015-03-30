@@ -26,7 +26,7 @@ dependencies {
         exclude(group: "org.yaml", module: "snakeyaml");
     };
     testCompile(group: "org.mockito", name: "mockito-core", version: "1.10.19");
-    testCompile(group: "org.assertj", name: "assertj-core", version: "1.7.1");
+    testCompile(group: "org.assertj", name: "assertj-core", version: "2.0.0");
     testCompile(group: "org.codehaus.sonar.sslr", name: "sslr-testing-harness",
         version: "1.20") {
         exclude(group: "junit", module: "junit");
