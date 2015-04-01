@@ -3,7 +3,7 @@ apply(plugin: "maven");
 apply(plugin: "signing");
 
 group = "es.litesolutions";
-version = "0.2.0";
+version = "0.3.0-SNAPSHOT";
 description = "Grappa integration for Sonar's SSLR";
 
 def javaVersion = JavaVersion.VERSION_1_7;

@@ -6,16 +6,16 @@ Please see the file LICENSE for more details.
 
 ## What this is
 
-This package is a sample implementation of an SSLR `Channel` using a parser written with
-[grappa](https://github.com/fge/grappa).
+This package is a simple framework for writing a language plugin for SonarQube.
+At its core, it uses parsers written with [grappa](https://github.com/fge/grappa).
 
 Requires Java 7+.
 
-The current version is **0.1.0**:
+The current version is **0.2.0**:
 
 * groupId: `es.litesolutions`;
 * artifactId: `sonar-sslr-grappa`;
-* version: `0.1.0`.
+* version: `0.2.0`.
 
 ## About SSLR
 
@@ -100,15 +100,12 @@ actual content of the tokens are your checks -- not the grammar.
 
 Grappa provides the following tools to help you:
 
-* a [tracer](https://github.com/fge/grappa-tracer-backport), with which you can
-  record your parsing run;
+* a tracer, with which you can record your parsing run;
 * a [debugger](https://github.com/fge/grappa-debugger), with which you can
   analyze your parsing run.
 
-Right now, this is not configurable (this is in the plans) and the currently
-provided channel will unconditionally record the trace file in `/tmp/trace.zip`
-(yes, that's a Unix path; sorry...). The intent is to make this configurable in
-the near future.
+The API allows you to register a tracer which will generate trace files (those
+are zip files) in the directory of your choice.
 
 ### Versatility
 
@@ -129,17 +126,19 @@ public Rule anbncn()
 }
 ```
 
-And there is even more than that.
-
 ## How this works
 
-In order to write a parser, you will need to extend `SonarParserBase`; this (abstract) parser
-implementation extends `EventBusParser<Token.Builder>` (which, by the way, means you can register
-any listener to your parser implementation provided it has the necessary annotations; see
+### The parser
+
+In order to write a parser, you will need to extend `SonarParserBase`; this
+(abstract) parser implementation extends `ListeningParser<Token.Builder>`
+(which, by the way, means you can register any listener to your parser
+implementation provided it has the necessary annotations; see
 [`EventBus`](http://docs.guava-libraries.googlecode.com/git-history/release/javadoc/com/google/common/eventbus/EventBus.html)).
 
 What you push is not a token directly but an instance of `Token.Builder`; all you have to do is use
-the method `pushToken(someTokenType)`, with `someTokenType` being an instance of `TokenType`.
+the method `pushToken(someTokenType)`, with `someTokenType` being an instance of
+`TokenType`.
 
 This method will grab the indices of the text matched by the _immediately preceding rule_ and
 produce a `Token.Builder` on the parser's stack (which is unwound when the parsing finishes). For
@@ -175,6 +174,18 @@ public Rule thatIsBetter()
     );
 }
 ```
+
+### The (SSLR) parser factory
+
+This package also offers a factory which allows you to generate SSLR parsers out
+of two elements:
+
+* your (grappa!) parser class,
+* your grammar class.
+
+From such a factory, you can obtain not only rules for parsing a full source
+file, but also just extracts from it; this makes it very convenient for testing
+only part of your parser and/or grammar.
 
 ## Technical notes...
 
