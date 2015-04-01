@@ -199,7 +199,8 @@ the parser (which relies on the `@Subscribe` annotation for the appropriate
 methods) you need to include this:
 
 ```
-import sonarhack.com.google.common.eventbus.Subscribe;
+// Note the initial "r"!
+import r.com.google.common.eventbus.Subscribe;
 ```
 
 instead of:
