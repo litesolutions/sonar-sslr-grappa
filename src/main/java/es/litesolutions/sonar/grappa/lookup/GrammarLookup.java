@@ -1,12 +1,23 @@
 package es.litesolutions.sonar.grappa.lookup;
 
 import org.sonar.sslr.grammar.GrammarRuleKey;
+import org.sonar.sslr.grammar.LexerfulGrammarBuilder;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Field;
 import java.util.Objects;
 
+/**
+ * Convenience utility class to look up a grammar's "entry point"
+ *
+ * <p>This grammar rule key will be annotated with {@link EntryPoint}; this is
+ * the rule you would normally declare as the root rule of a {@link
+ * LexerfulGrammarBuilder} using {@link
+ * LexerfulGrammarBuilder#setRootRule(GrammarRuleKey)}.</p>
+ *
+ * @param <G> type parameter of the grammar
+ */
 @ParametersAreNonnullByDefault
 public final class GrammarLookup<G extends Enum<G> & GrammarRuleKey>
 {

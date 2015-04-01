@@ -20,6 +20,34 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Utility class to lookup rules in a parser class
+ *
+ * <p>There are three ways to lookup rules:</p>
+ *
+ * <ul>
+ *     <li>by name,</li>
+ *     <li>by {@link GrammarRuleKey},</li>
+ *     <li>annotated with {@link MainRule}.</li>
+ * </ul>
+ *
+ * <p>The second lookup mechanism requires that the rule be annotated with
+ * {@link GrammarRule}.</p>
+ *
+ * <p>Note that the only methods looked up need to obey the following
+ * conditions:</p>
+ *
+ * <ul>
+ *     <li>they must return a {@link Rule};</li>
+ *     <li>they must have no arguments;</li>
+ *     <li>they must be {@code public}.</li>
+ * </ul>
+ *
+ * <p>Also, the parser constructor must not take any arguments.</p>
+ *
+ * @param <P> type parameter of the parser (which must extend {@link
+ * SonarParserBase})
+ */
 @ParametersAreNonnullByDefault
 public final class RuleLookup<P extends SonarParserBase>
 {
@@ -39,6 +67,11 @@ public final class RuleLookup<P extends SonarParserBase>
 
     private final Map<String, Rule> rules = new HashMap<>();
 
+    /**
+     * Constructor
+     *
+     * @param parserClass the parser class
+     */
     public RuleLookup(final Class<P> parserClass)
     {
         this.parserClass = Objects.requireNonNull(parserClass);
@@ -50,6 +83,12 @@ public final class RuleLookup<P extends SonarParserBase>
         mainRule = handle != null ? getRule(handle) : null;
     }
 
+    /**
+     * Return the rule annotated with {@link MainRule}
+     *
+     * @return the rule
+     * @throws IllegalStateException no rule in the parser is thus annotated
+     */
     public Rule getMainRule()
     {
         if (mainRule == null)
@@ -58,6 +97,12 @@ public final class RuleLookup<P extends SonarParserBase>
         return mainRule;
     }
 
+    /**
+     * Return a rule by name
+     *
+     * @param name the name of the rule (the method name)
+     * @return the rule
+     */
     public Rule getRuleByName(final String name)
     {
         Objects.requireNonNull(name);
@@ -75,6 +120,14 @@ public final class RuleLookup<P extends SonarParserBase>
         return rule;
     }
 
+    /**
+     * Return a rule associated with a given {@link GrammarRuleKey}
+     *
+     * @param key the key
+     * @return the rule
+     *
+     * @see GrammarRule
+     */
     public Rule getRuleByKey(final GrammarRuleKey key)
     {
         Objects.requireNonNull(key);
@@ -103,7 +156,6 @@ public final class RuleLookup<P extends SonarParserBase>
 
         return getRuleByName(candidate.getName());
     }
-
 
     private MethodHandle getHandleByName(final String ruleName)
     {
