@@ -3,6 +3,7 @@ package es.litesolutions.sonar.grappa;
 import com.github.fge.grappa.buffers.InputBuffer;
 import com.github.fge.grappa.rules.Rule;
 import com.github.fge.grappa.run.ListeningParseRunner;
+import com.github.fge.grappa.run.ParseRunnerListener;
 import com.sonar.sslr.api.Token;
 import com.sonar.sslr.impl.Lexer;
 import es.litesolutions.sonar.grappa.listeners.ListenerSupplier;
@@ -13,6 +14,19 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Collection;
 import java.util.HashSet;
 
+/**
+ * An SSL {@link Channel} associated with a Grappar parser {@link Rule}
+ *
+ * <p>This channel requires that the parser already be initialized; generally,
+ * you will not initialize a channel directly but go through a {@link
+ * GrappaSslrFactory} instead.</p>
+ *
+ * <p>Such a channel will always be asociated with at least a {@link
+ * CodeReaderListener}, but you can add more listeners if you wish by
+ * registering one or more {@link ListenerSupplier}.</p>
+ *
+ * @see CodeReaderListener
+ */
 @ParametersAreNonnullByDefault
 public final class GrappaChannel
     extends Channel<Lexer>
@@ -31,6 +45,23 @@ public final class GrappaChannel
         suppliers.add(supplier);
     }
 
+    /**
+     * Run the parser on the supplied {@link CodeReader}
+     *
+     * <p>This method will instantiate a {@link CodeReaderInputBuffer} over the
+     * supplied code reader and feed it to the parser rule. If one or more
+     * {@link ListenerSupplier}s are present, it also initializes the associated
+     * parsing run listeners and registers them.</p>
+     *
+     * <p>The real token creation process is delegated to the generated {@link
+     * CodeReaderListener}.</p>
+     *
+     * @param code the code to parse
+     * @param output the lexer associated with the code
+     * @return true or false if the code could be consumed
+     *
+     * @see ListeningParseRunner#registerListener(ParseRunnerListener)
+     */
     @Override
     public boolean consume(final CodeReader code, final Lexer output)
     {

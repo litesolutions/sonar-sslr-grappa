@@ -1,5 +1,6 @@
 package es.litesolutions.sonar.grappa;
 
+import com.github.fge.grappa.exceptions.GrappaException;
 import com.github.fge.grappa.matchers.base.Matcher;
 import com.github.fge.grappa.run.ListeningParseRunner;
 import com.github.fge.grappa.run.ParseRunnerListener;
@@ -36,12 +37,18 @@ import java.util.List;
  *
  * <p>After the parsing is done, the consumed characters are {@link
  * CodeReader#pop() popped} from the reader and the recorded tokens are added
- * to the lexer.</p>
+ * to the lexer. One particular case is that if the matched token is {@link
+ * GenericTokenType#COMMENT}, it will {@link Lexer#addTrivia(Trivia...)}
+ * instead of creating a token.</p>
+ *
+ * <p>Note that this channel will throw a {@link GrappaException} if not all
+ * characters have been consumed!</p>
  *
  * @see Channel#consume(CodeReader, Object)
  * @see ListeningParseRunner
  * @see SonarParserBase
  */
+@SuppressWarnings("UnnecessarilyQualifiedInnerClassAccess")
 public final class CodeReaderListener
     extends ParseRunnerListener<Token.Builder>
 {
@@ -51,10 +58,12 @@ public final class CodeReaderListener
     /*
      * The root matcher. We get it from the initial root context.
      */
+    @SuppressWarnings("InstanceVariableMayNotBeInitialized")
     private Matcher rootMatcher;
     /*
      * The number of characters consumed by the root matcher.
      */
+    @SuppressWarnings("InstanceVariableMayNotBeInitialized")
     private int consumed;
 
     public CodeReaderListener(final Lexer lexer, final CodeReader reader)

@@ -21,7 +21,7 @@ import java.util.HashSet;
 import java.util.Objects;
 
 @ParametersAreNonnullByDefault
-public final class GrappaSslrParserFactory
+public final class GrappaSslrFactory
 {
     private final RuleLookup<?> ruleLookup;
     private final MethodHandle grammarInjector;
@@ -38,7 +38,7 @@ public final class GrappaSslrParserFactory
         return new Builder<>(parserClass, grammarClass);
     }
 
-    private GrappaSslrParserFactory(final Builder<?, ?> builder)
+    private GrappaSslrFactory(final Builder<?, ?> builder)
     {
         ruleLookup = builder.ruleLookup;
         grammarInjector = builder.grammarInjector;
@@ -150,13 +150,13 @@ public final class GrappaSslrParserFactory
             return this;
         }
 
-        public GrappaSslrParserFactory build()
+        public GrappaSslrFactory build()
         {
             if (mainRule == null)
                 mainRule = ruleLookup.getMainRule();
             Objects.requireNonNull(entryPoint, "grammar entry point has not "
                 + "been set");
-            return new GrappaSslrParserFactory(this);
+            return new GrappaSslrFactory(this);
         }
 
         private MethodHandle findInjector(final Class<G> grammarClass)

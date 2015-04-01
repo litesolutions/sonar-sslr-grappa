@@ -43,9 +43,8 @@ import java.util.concurrent.ThreadFactory;
  * An {@link InputBuffer} over a {@link CodeReader}
  *
  * <p>Unfortunately, this is required. Sonar's {@link CodeBuffer} does not
- * support {@link CharSequence#subSequence(int, int)} for no good reason that I
- * can see... So this is basically a {@link CharSequenceInputBuffer} with
- * subsequence extraction rewritten.</p>
+ * support {@link CharSequence#subSequence(int, int)}... So this is basically a
+ * {@link CharSequenceInputBuffer} with subsequence extraction rewritten.</p>
  *
  */
 @Immutable
