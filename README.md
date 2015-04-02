@@ -11,11 +11,11 @@ At its core, it uses parsers written with [grappa](https://github.com/fge/grappa
 
 Requires Java 7+.
 
-The current version is **0.2.0**:
+The current version is **0.2.1**:
 
 * groupId: `es.litesolutions`;
 * artifactId: `sonar-sslr-grappa`;
-* version: `0.2.0`.
+* version: `0.2.1`.
 
 ## About SSLR
 
