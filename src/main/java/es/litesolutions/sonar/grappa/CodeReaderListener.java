@@ -58,13 +58,11 @@ public final class CodeReaderListener
     /*
      * The root matcher. We get it from the initial root context.
      */
-    @SuppressWarnings("InstanceVariableMayNotBeInitialized")
-    private Matcher rootMatcher;
+    private Matcher rootMatcher = null;
     /*
      * The number of characters consumed by the root matcher.
      */
-    @SuppressWarnings("InstanceVariableMayNotBeInitialized")
-    private int consumed;
+    private int consumed = 0;
 
     public CodeReaderListener(final Lexer lexer, final CodeReader reader)
     {
@@ -87,7 +85,7 @@ public final class CodeReaderListener
             return;
         if (context.getMatcher() != rootMatcher)
             throw new IllegalStateException("was expecting root rule here");
-        consumed = context.getCurrentIndex();
+        consumed = Math.max(consumed, context.getCurrentIndex());
     }
 
     @Override
@@ -98,37 +96,30 @@ public final class CodeReaderListener
             return;
         if (context.getMatcher() != rootMatcher)
             throw new IllegalStateException("was expecting root rule here");
-        consumed = context.getCurrentIndex();
+        consumed = Math.max(consumed, context.getCurrentIndex());
     }
 
     @Override
     public void afterParse(final PostParseEvent<Token.Builder> event)
     {
+        final int length = reader.length();
+
         /*
          * We want a match
          */
+
         final ParsingResult<Token.Builder> result = event.getResult();
         if (!result.isSuccess())
-            throw new IllegalStateException("match failure (consumed: "
-                + consumed);
+            throw new GrappaException("match failure (consumed: "
+                + consumed + " out of " + length + ')');
 
         /*
-         * Pop all the consumed characters from the code reader.
-         *
-         * Since grappa 1.0.x/parboiled is used, we must take care not to go
-         * beyond the end of input which may happen if the EOI matcher is used.
+         * Check that we did consume all the text
          */
-        final int length = reader.length();
 
-        final int realConsumed = Math.min(consumed, length);
-
-        if (realConsumed != length)
-            throw new IllegalStateException("was expecting to fully match, but"
-                + " only " + realConsumed + " chars were matched out of "
-                + length);
-
-        for (int i = 0; i < realConsumed; i++)
-            reader.pop();
+        if (consumed != length)
+            throw new GrappaException("was expecting to fully match, but only "
+                + consumed + " chars were matched out of " + length);
 
         final ValueStack<Token.Builder> stack = result.getValueStack();
 

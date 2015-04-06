@@ -79,6 +79,20 @@ public final class GrappaChannel
 
         runner.run(buffer);
 
+        /*
+         * Because of the CodeReaderListener here, we know that we have consumed
+         * the full input text; if this isn't the case (because of a parsing
+         * failure or because not all the input was consumed), an exception will
+         * have been thrown.
+         *
+         * We therefore pop() all the contents of the reader at this point...
+         */
+
+        final int length = code.length();
+
+        for (int i = 0; i < length; i++)
+            code.pop();
+
         return true;
     }
 }
