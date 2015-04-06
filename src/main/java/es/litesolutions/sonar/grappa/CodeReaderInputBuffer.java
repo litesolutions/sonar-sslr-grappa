@@ -112,18 +112,6 @@ public final class CodeReaderInputBuffer
     }
 
     @Override
-    public boolean test(final int index, final char[] characters)
-    {
-        final int length = characters.length;
-        if (index + length > reader.length())
-            return false;
-        for (int i = 0; i < length; i++)
-            if (reader.charAt(index + i) != characters[i])
-                return false;
-        return true;
-    }
-
-    @Override
     public String extract(final int start, final int end)
     {
         final int realStart = Math.max(start, 0);

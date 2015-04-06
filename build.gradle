@@ -17,7 +17,7 @@ dependencies {
     compile(group: "org.codehaus.sonar.sslr-squid-bridge",
         name: "sslr-squid-bridge", version: "2.6");
     compile(group: "com.github.fge", name: "grappa",
-        version: "2.0.0-beta.3", classifier: "all") {
+        version: "2.0.0-beta.4", classifier: "all") {
         exclude(group: "com.google.guava", module: "guava");
     };
     testCompile(group: "org.testng", name: "testng", version: "6.8.21") {
