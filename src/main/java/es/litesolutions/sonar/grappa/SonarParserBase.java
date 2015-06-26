@@ -11,6 +11,8 @@
 
 package es.litesolutions.sonar.grappa;
 
+import com.github.fge.grappa.annotations.Cached;
+import com.github.fge.grappa.annotations.DontExtend;
 import com.github.fge.grappa.parsers.ListeningParser;
 import com.github.fge.grappa.rules.Rule;
 import com.github.fge.grappa.run.context.Context;
@@ -18,51 +20,20 @@ import com.github.fge.grappa.support.Position;
 import com.sonar.sslr.api.GenericTokenType;
 import com.sonar.sslr.api.Token;
 import com.sonar.sslr.api.TokenType;
-import com.sonar.sslr.api.Trivia;
-import com.sonar.sslr.impl.Lexer;
 import es.litesolutions.sonar.grappa.tokentypes.CaseInsensitive;
+import es.litesolutions.sonar.grappa.tokentypes.ShortValueTokenType;
 import es.litesolutions.sonar.grappa.tokentypes.WithValue;
+import es.litesolutions.sonar.grappa.tokentypes.WithValues;
 
-/**
- * Basic parser definition for a {@link GrappaChannel}
- *
- * <p>This parser defines rules allowing you to pubish the results of a rule as
- * a Sonar {@link Token}. The generic method is {@link #pushToken(TokenType)}.
- * </p>
- *
- * <p>You also have convenience methods to allow you to both match input and
- * push the matching token; which are recognized by the parser and acted upon
- * See the javadoc of the defined methods for more details.</p>
- *
- * @see CodeReaderListener
- */
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+
 @SuppressWarnings("AutoBoxing")
+// @formatter:off
 public abstract class SonarParserBase
     extends ListeningParser<Token.Builder>
 {
-    /**
-     * Generic method to publish a token from a {@link TokenType}
-     *
-     * <p>This method will push a token <em>builder</em> on the stack, filling it
-     * with all the necessary information to produce the token, except for the URI
-     * of the lexer (this is done by the {@link CodeReaderListener}.</p>
-     *
-     * <p>Note that the input text associated with the published token will be
-     * that of the <em>immediately preceding rule</em>. This, for instance:</p>
-     *
-     * <pre>
-     *     Rule foobar()
-     *     {
-     *         return sequence("foo", "bar", pushToken(FOOBAR);
-     *     }
-     * </pre>
-     *
-     * <p>will associated the token with input {@code bar}, not {@code foobar}!
-     * </p>
-     *
-     * @param tokenType the token type
-     * @return always true
-     */
     public boolean pushToken(final TokenType tokenType)
     {
         final Context<Token.Builder> context = getContext();
@@ -79,41 +50,86 @@ public abstract class SonarParserBase
         return push(token);
     }
 
-    /**
-     * Associate the immediately preceding matched text with a comment
-     *
-     * <p>In fact, this calls {@link #pushToken(TokenType)} with a token type
-     * of {@link GenericTokenType#COMMENT}; the listener will recognize this
-     * when the parsing is done and also associate a {@link Trivia} with the
-     * matched text.</p>
-     *
-     * @return always true
-     *
-     * @see Lexer#addTrivia(Trivia...)
-     * @see Trivia.TriviaKind#COMMENT
-     */
     public boolean setAsComment()
     {
         return pushToken(GenericTokenType.COMMENT);
     }
 
-    /**
-     * Try and match a TokenType's {@link TokenType#getValue()} and publish the
-     * token if matched (optionally case insensitive)
-     *
-     * @param tokenType the token type
-     * @param <T> the type parameter for the token
-     * @return always true
-     *
-     * @see WithValue
-     * @see CaseInsensitive
-     */
-    protected <T extends TokenType & WithValue> Rule token(final T tokenType)
+    protected Rule shortValueToken(final ShortValueTokenType tokenType)
+    {
+        return tokenType instanceof CaseInsensitive
+            ? doShortCaseInsensitive(tokenType)
+            : doShortCaseSensitive(tokenType);
+    }
+
+    protected <T extends WithValue> Rule token(final T tokenType)
     {
         return tokenType instanceof CaseInsensitive
             ? sequence(ignoreCase(tokenType.getValue()), pushToken(tokenType))
-                .label(tokenType.getValue())
-            : sequence(tokenType.getValue(), pushToken(tokenType))
-                .label(tokenType.getValue());
+            : sequence(tokenType.getValue(), pushToken(tokenType));
+    }
+
+    protected Rule doShortCaseInsensitive(final ShortValueTokenType tokenType)
+    {
+        return tokenType.getShortValue() == null
+            ? sequence(ignoreCase(tokenType.getValue()), pushToken(tokenType))
+            : sequence(
+                trieIgnoreCase(tokenType.getValue(), tokenType.getShortValue()),
+                pushToken(tokenType)
+            );
+    }
+
+    protected Rule doShortCaseSensitive(final ShortValueTokenType tokenType)
+    {
+        return tokenType.getShortValue() == null
+            ? sequence(tokenType.getValue(), pushToken(tokenType))
+            : sequence(
+                trie(tokenType.getValue(), tokenType.getShortValue()),
+                pushToken(tokenType)
+            );
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Cached
+    public Rule values(final WithValues withValues)
+    {
+        final Rule rule = withValues instanceof CaseInsensitive
+            ? trieIgnoreCase(withValues.getValues())
+            : trie(withValues.getValues());
+        return sequence(rule, pushToken(withValues));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Cached
+    public <T extends WithValue> Rule oneTokenAmong(final Function<String, T> f,
+        final T... tokens)
+    {
+        return sequence(
+            buildTrie(tokens),
+            pushToken(f.apply(match()))
+        );
+    }
+
+    @SuppressWarnings("unchecked")
+    @DontExtend
+    protected <T extends WithValue> Rule buildTrie(final T... tokens)
+    {
+        if (tokens.length == 0)
+            throw new IllegalStateException("token list must not be empty");
+
+        final T first = tokens[0];
+        final boolean withShortValue = first instanceof ShortValueTokenType;
+
+        final List<String> list = new ArrayList<>();
+
+        for (final T token: tokens) {
+            list.add(token.getValue());
+            if (withShortValue
+                && ((ShortValueTokenType) token).getShortValue() != null)
+                list.add(((ShortValueTokenType) token).getShortValue());
+        }
+
+        return first instanceof CaseInsensitive ? trieIgnoreCase(list)
+            : trie(list);
     }
 }

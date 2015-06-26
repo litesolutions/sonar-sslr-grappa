@@ -11,25 +11,21 @@
 
 package es.litesolutions.sonar.grappa.tokentypes;
 
-import com.sonar.sslr.api.AstNode;
 import com.sonar.sslr.api.TokenType;
+import es.litesolutions.sonar.grappa.SonarParserBase;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Collection;
 
-@FunctionalInterface
-public interface WithValue
+/**
+ * A token having a fixed set of values
+ *
+ * @see SonarParserBase#values(WithValues)
+ */
+// TODO: default method for .hasToBeSkippedFromAst()
+public interface WithValues
     extends TokenType
 {
-    @Override
-    @Nonnull
-    default String getValue()
-    {
-        return getName();
-    }
-
-    @Override
-    default boolean hasToBeSkippedFromAst(@Nonnull final AstNode node)
-    {
-        return false;
-    }
+    @Nullable
+    Collection<String> getValues();
 }

@@ -28,7 +28,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import java.nio.CharBuffer;
 import java.util.Objects;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -38,8 +37,9 @@ import java.util.concurrent.ThreadFactory;
  * An {@link InputBuffer} over a {@link CodeReader}
  *
  * <p>Unfortunately, this is required. Sonar's {@link CodeBuffer} does not
- * support {@link CharSequence#subSequence(int, int)}... So this is basically a
- * {@link CharSequenceInputBuffer} with subsequence extraction rewritten.</p>
+ * support {@link CharSequence#subSequence(int, int)} for no good reason that I
+ * can see... So this is basically a {@link CharSequenceInputBuffer} with
+ * subsequence extraction rewritten.</p>
  *
  */
 @Immutable
@@ -55,26 +55,20 @@ public final class CodeReaderInputBuffer
     }
 
     private final CodeReader reader;
+    private final int length;
     private final Future<LineCounter> lineCounter;
 
     public CodeReaderInputBuffer(@Nonnull final CodeReader reader)
     {
         this.reader = Objects.requireNonNull(reader);
-        lineCounter = EXECUTOR_SERVICE.submit(new Callable<LineCounter>()
-        {
-            @Override
-            public LineCounter call()
-            {
-                return new LineCounter(reader);
-            }
-        });
+        length = reader.length();
+        lineCounter = EXECUTOR_SERVICE.submit(() -> new LineCounter(reader));
     }
 
     @Override
     public char charAt(final int index)
     {
-        return index >= 0 && index < reader.length()
-            ? reader.charAt(index) : Chars.EOI;
+        return index >= 0 && index < length ? reader.charAt(index) : Chars.EOI;
     }
 
     /**
@@ -91,7 +85,6 @@ public final class CodeReaderInputBuffer
     @Override
     public int codePointAt(final int index)
     {
-        final int length = reader.length();
         if (index >= length)
             return -1;
         if (index < 0)
@@ -110,7 +103,7 @@ public final class CodeReaderInputBuffer
     public String extract(final int start, final int end)
     {
         final int realStart = Math.max(start, 0);
-        final int realEnd = Math.min(end, reader.length());
+        final int realEnd = Math.min(end, length);
         final CharBuffer buf = CharBuffer.allocate(realEnd - realStart);
         for (int i = realStart; i < realEnd; i++)
             buf.put(charAt(i));
@@ -135,6 +128,7 @@ public final class CodeReaderInputBuffer
         return new Position(position.getLine(), position.getColumn() - 1);
     }
 
+    @SuppressWarnings("AutoUnboxing")
     @Override
     public String extractLine(final int lineNumber)
     {
@@ -156,6 +150,7 @@ public final class CodeReaderInputBuffer
      * @param lineNumber the line number
      * @return the index range
      */
+    @SuppressWarnings("AutoUnboxing")
     @Override
     public IndexRange getLineRange(final int lineNumber)
     {
@@ -173,6 +168,6 @@ public final class CodeReaderInputBuffer
     @Override
     public int length()
     {
-        return reader.length();
+        return length;
     }
 }

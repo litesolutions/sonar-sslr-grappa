@@ -48,18 +48,12 @@ import java.util.List;
  *
  * <p>After the parsing is done, the consumed characters are {@link
  * CodeReader#pop() popped} from the reader and the recorded tokens are added
- * to the lexer. One particular case is that if the matched token is {@link
- * GenericTokenType#COMMENT}, it will {@link Lexer#addTrivia(Trivia...)}
- * instead of creating a token.</p>
- *
- * <p>Note that this channel will throw a {@link GrappaException} if not all
- * characters have been consumed!</p>
+ * to the lexer.</p>
  *
  * @see Channel#consume(CodeReader, Object)
  * @see ListeningParseRunner
  * @see SonarParserBase
  */
-@SuppressWarnings("UnnecessarilyQualifiedInnerClassAccess")
 public final class CodeReaderListener
     extends ParseRunnerListener<Token.Builder>
 {
@@ -92,11 +86,12 @@ public final class CodeReaderListener
     public void matchSuccess(final MatchSuccessEvent<Token.Builder> event)
     {
         final MatcherContext<Token.Builder> context = event.getContext();
+        if (!context.inPredicate())
+            consumed = Math.max(consumed, context.getCurrentIndex());
         if (context.getLevel() != 0)
             return;
         if (context.getMatcher() != rootMatcher)
             throw new IllegalStateException("was expecting root rule here");
-        consumed = Math.max(consumed, context.getCurrentIndex());
     }
 
     @Override
@@ -107,7 +102,6 @@ public final class CodeReaderListener
             return;
         if (context.getMatcher() != rootMatcher)
             throw new IllegalStateException("was expecting root rule here");
-        consumed = Math.max(consumed, context.getCurrentIndex());
     }
 
     @Override
