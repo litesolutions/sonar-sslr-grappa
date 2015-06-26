@@ -1,6 +1,6 @@
 ## Read me first
 
-This package has the same license as Sonar's SSLR package itself: LGPLv3.
+This package is licensed under the Apache Software License, version 2.0.
 
 Please see the file LICENSE for more details.
 
