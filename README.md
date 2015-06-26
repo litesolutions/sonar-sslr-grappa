@@ -2,6 +2,8 @@
 
 This package is licensed under the Apache Software License, version 2.0.
 
+This package requires **Java 8**.
+
 Please see the file LICENSE for more details.
 
 ## What this is
@@ -11,11 +13,11 @@ At its core, it uses parsers written with [grappa](https://github.com/fge/grappa
 
 Requires Java 7+.
 
-The current version is **0.2.2**:
+The current version is **0.3.0**:
 
 * groupId: `es.litesolutions`;
 * artifactId: `sonar-sslr-grappa`;
-* version: `0.2.2`.
+* version: `0.3.0`.
 
 ## About SSLR
 
