@@ -37,7 +37,7 @@ dependencies {
         version: "2.0.3", classifier: "all") {
         exclude(group: "com.google.guava", module: "guava");
     };
-    testCompile(group: "org.testng", name: "testng", version: "6.9.4") {
+    testCompile(group: "org.testng", name: "testng", version: "6.9.10") {
         exclude(group: "org.apache.ant", module: "ant");
         exclude(group: "com.google.inject", module: "guice");
         exclude(group: "junit", module: "junit");
@@ -45,7 +45,7 @@ dependencies {
         exclude(group: "org.yaml", module: "snakeyaml");
     };
     testCompile(group: "org.mockito", name: "mockito-core", version: "1.10.19");
-    testCompile(group: "org.assertj", name: "assertj-core", version: "3.0.0");
+    testCompile(group: "org.assertj", name: "assertj-core", version: "3.3.0");
     testCompile(group: "org.codehaus.sonar.sslr", name: "sslr-testing-harness",
         version: "1.20") {
         exclude(group: "junit", module: "junit");
@@ -53,7 +53,7 @@ dependencies {
     };
 }
 
-javadoc.options.links("http://docs.oracle.com/javase/7/docs/api/");
+javadoc.options.links("http://docs.oracle.com/javase/8/docs/api/");
 
 task enforceVersion << {
     def foundVersion = JavaVersion.current();
@@ -93,7 +93,7 @@ artifacts {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = "2.4";
+    gradleVersion = "2.11";
     distributionUrl = "http://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip";
 }
 
