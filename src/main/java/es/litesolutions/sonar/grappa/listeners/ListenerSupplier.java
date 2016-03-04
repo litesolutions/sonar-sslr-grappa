@@ -18,6 +18,7 @@ import org.sonar.sslr.channel.CodeReader;
 
 import javax.annotation.Nonnull;
 
+@FunctionalInterface
 public interface ListenerSupplier
 {
     @Nonnull
