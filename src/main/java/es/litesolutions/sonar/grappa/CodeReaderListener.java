@@ -32,9 +32,6 @@ import org.sonar.sslr.channel.Channel;
 import org.sonar.sslr.channel.CodeReader;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * A parsing listener associated with a Sonar {@link CodeReader} and {@link
@@ -130,17 +127,12 @@ public final class CodeReaderListener
 
         final ValueStack<Token.Builder> stack = result.getValueStack();
 
-        final List<Token.Builder> list = new ArrayList<>(stack.size());
-        while (!stack.isEmpty())
-            list.add(stack.pop());
-
-        Collections.reverse(list);
-
         final URI uri = lexer.getURI();
-
+        final int size = stack.size();
         Token token;
-        for (final Token.Builder builder: list) {
-            token = builder.setURI(uri).build();
+
+        for (int index = size - 1; index >= 0; index--) {
+            token = stack.peek(index).setURI(uri).build();
             if (token.getType() == GenericTokenType.COMMENT)
                 lexer.addTrivia(Trivia.createComment(token));
             else
