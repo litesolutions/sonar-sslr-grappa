@@ -11,13 +11,13 @@ Please see the file LICENSE for more details.
 This package is a simple framework for writing a language plugin for SonarQube.
 At its core, it uses parsers written with [grappa](https://github.com/fge/grappa).
 
-Requires Java 7+.
+Requires Java 8+.
 
-The current version is **0.5.0**:
+The current version is **0.6.0**:
 
 * groupId: `es.litesolutions`;
 * artifactId: `sonar-sslr-grappa`;
-* version: `0.5.0`.
+* version: `0.6.0`.
 
 ## About SSLR
 
@@ -116,7 +116,6 @@ things done which go beyond PEG as well. For instance, the famous "a^n b^n c^n"
 grammar can be matched with this single rule:
 
 ```
-// Supposes Java 7+
 public Rule anbncn()
 {
     final Var<Integer> count = new Var<>();
