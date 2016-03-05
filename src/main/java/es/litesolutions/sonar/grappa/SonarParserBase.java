@@ -17,9 +17,29 @@ import com.github.fge.grappa.parsers.ListeningParser;
 import com.github.fge.grappa.run.context.Context;
 import com.github.fge.grappa.support.Position;
 import com.sonar.sslr.api.Token;
+import com.sonar.sslr.api.Token.Builder;
 import com.sonar.sslr.api.TokenType;
 
-@SuppressWarnings("AutoBoxing")
+/**
+ * The base (grappa) parser class to extend
+ *
+ * <p>This base parser class only defines a single method whose argument is
+ * a {@link TokenType} and always returns true.</p>
+ *
+ * <p>Typically, the usage will be:</p>
+ *
+ * <pre>
+ *     public Rule myRule()
+ *     {
+ *         return sequence(otherRule(), pushToken(myToken));
+ *     }
+ * </pre>
+ *
+ * <p>This method then builds a {@link Builder} using information from the
+ * parsing context to obtain the start and end of the match, and associates this
+ * match with the token type.</p>
+ */
+@SuppressWarnings({ "AutoBoxing", "AbstractClassNeverImplemented" })
 // @formatter:off
 public abstract class SonarParserBase
     extends ListeningParser<Token.Builder>

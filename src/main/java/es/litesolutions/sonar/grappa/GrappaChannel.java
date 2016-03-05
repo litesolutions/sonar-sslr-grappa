@@ -23,24 +23,44 @@ import org.sonar.sslr.channel.Channel;
 import org.sonar.sslr.channel.CodeReader;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Objects;
 
+/**
+ * The one and only channel necessary for a Grappa-based {@link Lexer}
+ *
+ */
 @ParametersAreNonnullByDefault
 public final class GrappaChannel
     extends Channel<Lexer>
 {
     private final Rule rule;
 
-    private final Collection<ListenerSupplier> suppliers = new HashSet<>();
+    private final Collection<ListenerSupplier> suppliers = new ArrayList<>();
 
+    /**
+     * Constructor
+     *
+     * @param rule the (grappa) parser rule
+     */
     public GrappaChannel(final Rule rule)
     {
         this.rule = rule;
         suppliers.add(CodeReaderListener::new);
     }
 
+    /**
+     * Add one listener to the parsing process
+     *
+     * <p>By default, the only listener defined will be a {@link
+     * CodeReaderListener}, since it is necessary to add the generated tokens
+     * to the lexer.</p>
+     *
+     * <p>You can use this method to add more listeners if you wish.</p>
+     *
+     * @param supplier the supplier
+     */
     public void addListenerSupplier(final ListenerSupplier supplier)
     {
         suppliers.add(Objects.requireNonNull(supplier));

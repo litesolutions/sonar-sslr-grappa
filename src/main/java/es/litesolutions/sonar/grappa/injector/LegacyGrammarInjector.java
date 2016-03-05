@@ -14,6 +14,7 @@
 package es.litesolutions.sonar.grappa.injector;
 
 import com.github.fge.grappa.exceptions.GrappaException;
+import es.litesolutions.sonar.grappa.GrappaSslrFactory.Builder;
 import org.sonar.sslr.grammar.GrammarRuleKey;
 import org.sonar.sslr.grammar.LexerfulGrammarBuilder;
 
@@ -45,8 +46,9 @@ import java.lang.invoke.MethodType;
  *         }
  *     }
  * </pre>
+ *
+ * @see Builder#withGrammarClass(Class)
  */
-@Deprecated
 public final class LegacyGrammarInjector
     implements GrammarInjector
 {
