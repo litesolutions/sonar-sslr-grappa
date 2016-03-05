@@ -68,7 +68,7 @@ public final class CodeReaderListener
      */
     private int consumed = 0;
 
-    public CodeReaderListener(final Lexer lexer, final CodeReader reader)
+    public CodeReaderListener(final CodeReader reader, final Lexer lexer)
     {
         this.lexer = lexer;
         this.reader = reader;

@@ -25,6 +25,7 @@ import org.sonar.sslr.channel.CodeReader;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 
 @ParametersAreNonnullByDefault
 public final class GrappaChannel
@@ -37,11 +38,12 @@ public final class GrappaChannel
     public GrappaChannel(final Rule rule)
     {
         this.rule = rule;
+        suppliers.add(CodeReaderListener::new);
     }
 
     public void addListenerSupplier(final ListenerSupplier supplier)
     {
-        suppliers.add(supplier);
+        suppliers.add(Objects.requireNonNull(supplier));
     }
 
     @Override
@@ -49,15 +51,11 @@ public final class GrappaChannel
     {
         final InputBuffer buffer = new CodeReaderInputBuffer(code);
 
-        final CodeReaderListener listener
-            = new CodeReaderListener(output, code);
-
         final ListeningParseRunner<Token.Builder> runner
             = new ListeningParseRunner<>(rule);
 
-        runner.registerListener(listener);
-        for (final ListenerSupplier supplier: suppliers)
-            runner.registerListener(supplier.create(code, output));
+        suppliers.stream().map(supplier -> supplier.create(code, output))
+            .forEach(runner::registerListener);
 
         runner.run(buffer);
 
