@@ -28,6 +28,9 @@ import com.sonar.sslr.api.GenericTokenType;
 import com.sonar.sslr.api.Token;
 import com.sonar.sslr.api.Trivia;
 import com.sonar.sslr.impl.Lexer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.sslr.channel.Channel;
 import org.sonar.sslr.channel.CodeReader;
 
@@ -58,6 +61,7 @@ public final class CodeReaderListener
 {
     private final Lexer lexer;
     private final CodeReader reader;
+    private static final Logger LOG = LoggerFactory.getLogger(CodeReaderListener.class);
 
     /*
      * The root matcher. We get it from the initial root context.
@@ -121,9 +125,37 @@ public final class CodeReaderListener
          * Check that we did consume all the text
          */
 
-        if (consumed != length)
-            throw new GrappaException("was expecting to fully match, but only "
-                + consumed + " chars were matched out of " + length);
+        if (consumed != length){        	
+        	int saltoLineaIni = consumed;
+        	int saltoLineaEnd = consumed;
+        	for(int i=consumed; i>0;i--){
+        		char u =  reader.charAt(i);
+        		if (u == '\n' || u == '\r'){
+        			saltoLineaIni = i;
+        			break;
+        		}
+               
+        	}
+        	for(int i=consumed; i<length;i++){
+        		char u =  reader.charAt(i);
+        		if (u == '\n' || u == '\r'){
+        			saltoLineaEnd = i;
+        			break;
+        		}
+               
+        	}
+        	String lineToShow = "";
+        	for(int i=saltoLineaIni; i<saltoLineaEnd;i++){
+        		lineToShow = lineToShow + reader.charAt(i);
+        	}
+        	
+        	LOG.error("LINE ERROR: "+lineToShow);
+        	
+        	//Escribir de reader[consumed-10] a reader[consumed+10]
+        	throw new GrappaException("was expecting to fully match, but only "
+                    + consumed + " chars were matched out of " + length);
+        }
+            
 
         final ValueStack<Token.Builder> stack = result.getValueStack();
 
