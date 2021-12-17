@@ -16,7 +16,7 @@ plugins {
 }
 
 group = "org.litesolutions"
-version = "0.6.2"
+version = "0.7.0"
 description = "Grappa integration for Sonar's SSLR"
 
 def javaVersion = JavaVersion.VERSION_1_8
@@ -108,7 +108,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = "https://maven.pkg.github.com/octocat/hello-world"
+            url = "https://maven.pkg.github.com/litesolutions/sonar-sslr-grappa"
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")
