@@ -47,13 +47,12 @@ import java.util.concurrent.ThreadFactory;
  */
 @Immutable
 public final class CodeReaderInputBuffer
-    implements InputBuffer
-{
+        implements InputBuffer {
     private static final ExecutorService EXECUTOR_SERVICE;
 
     static {
         final ThreadFactory factory = new ThreadFactoryBuilder()
-            .setDaemon(true).setNameFormat("linecounter-thread-%d").build();
+                .setDaemon(true).setNameFormat("linecounter-thread-%d").build();
         EXECUTOR_SERVICE = Executors.newCachedThreadPool(factory);
     }
 
@@ -61,16 +60,14 @@ public final class CodeReaderInputBuffer
     private final int length;
     private final Future<LineCounter> lineCounter;
 
-    public CodeReaderInputBuffer(@Nonnull final CodeReader reader)
-    {
+    public CodeReaderInputBuffer(@Nonnull final CodeReader reader) {
         this.reader = Objects.requireNonNull(reader);
         length = reader.length();
         lineCounter = EXECUTOR_SERVICE.submit(() -> new LineCounter(reader));
     }
 
     @Override
-    public char charAt(final int index)
-    {
+    public char charAt(final int index) {
         return index >= 0 && index < length ? reader.charAt(index) : Chars.EOI;
     }
 
@@ -82,12 +79,10 @@ public final class CodeReaderInputBuffer
      * @param index the index
      * @return the code point at this index, or -1 if the end of input has been
      * reached
-     *
      * @throws IllegalArgumentException index is negative
      */
     @Override
-    public int codePointAt(final int index)
-    {
+    public int codePointAt(final int index) {
         if (index >= length)
             return -1;
         if (index < 0)
@@ -103,8 +98,7 @@ public final class CodeReaderInputBuffer
     }
 
     @Override
-    public String extract(final int start, final int end)
-    {
+    public String extract(final int start, final int end) {
         final int realStart = Math.max(start, 0);
         final int realEnd = Math.min(end, length);
         final CharBuffer buf = CharBuffer.allocate(realEnd - realStart);
@@ -114,27 +108,24 @@ public final class CodeReaderInputBuffer
     }
 
     @Override
-    public String extract(final IndexRange range)
-    {
+    public String extract(final IndexRange range) {
         return extract(range.start, range.end);
     }
 
     @Override
-    public Position getPosition(final int index)
-    {
+    public Position getPosition(final int index) {
         /*
          * A CodeReader column index starts at 0, not 1; we therefore need to
          * substract one from the extracted position...
          */
         final Position position
-            = Futures.getUnchecked(lineCounter).toPosition(index);
+                = Futures.getUnchecked(lineCounter).toPosition(index);
         return new Position(position.getLine(), position.getColumn() - 1);
     }
 
     @SuppressWarnings("AutoUnboxing")
     @Override
-    public String extractLine(final int lineNumber)
-    {
+    public String extractLine(final int lineNumber) {
         Preconditions.checkArgument(lineNumber > 0, "line number is negative");
         final LineCounter counter = Futures.getUnchecked(lineCounter);
         final Range<Integer> range = counter.getLineRange(lineNumber);
@@ -155,22 +146,19 @@ public final class CodeReaderInputBuffer
      */
     @SuppressWarnings("AutoUnboxing")
     @Override
-    public IndexRange getLineRange(final int lineNumber)
-    {
+    public IndexRange getLineRange(final int lineNumber) {
         final Range<Integer> range
-            = Futures.getUnchecked(lineCounter).getLineRange(lineNumber);
+                = Futures.getUnchecked(lineCounter).getLineRange(lineNumber);
         return new IndexRange(range.lowerEndpoint(), range.upperEndpoint());
     }
 
     @Override
-    public int getLineCount()
-    {
+    public int getLineCount() {
         return Futures.getUnchecked(lineCounter).getNrLines();
     }
 
     @Override
-    public int length()
-    {
+    public int length() {
         return length;
     }
 }

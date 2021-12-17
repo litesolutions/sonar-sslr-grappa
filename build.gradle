@@ -10,9 +10,10 @@
 *  https://www.apache.org/licenses/LICENSE-2.0.txt
 *
 */
-apply(plugin: "java")
-apply(plugin: "maven")
-apply(plugin: "signing")
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
 
 group = "org.litesolutions"
 version = "0.6.2"
@@ -22,82 +23,23 @@ def javaVersion = JavaVersion.VERSION_1_8
 sourceCompatibility = javaVersion
 targetCompatibility = javaVersion // defaults to sourceCompatibility
 
-/*
- * Repositories to use
- */
 repositories {
     mavenCentral()
 }
 
-/*
- * List of dependencies
- */
 dependencies {
-    compile(group: "org.codehaus.sonar.sslr-squid-bridge",
-            name: "sslr-squid-bridge", version: "2.6")
-    compile(group: "com.github.fge", name: "grappa",
-            version: "2.0.4", classifier: "all") {
-        exclude(group: "com.google.guava", module: "guava")
+    implementation('org.codehaus.sonar.sslr-squid-bridge:sslr-squid-bridge:2.6')
+    implementation('com.github.fge:grappa:2.0.4:all') {
+        exclude group: "com.google.guava", module: "guava"
     }
-    testCompile(group: "org.testng", name: "testng", version: "6.9.10") {
-        exclude(group: "org.apache.ant", module: "ant")
-        exclude(group: "com.google.inject", module: "guice")
-        exclude(group: "junit", module: "junit")
-        exclude(group: "org.beanshell", module: "bsh")
-        exclude(group: "org.yaml", module: "snakeyaml")
-    }
-    testCompile(group: "org.mockito", name: "mockito-core", version: "1.10.19")
-    testCompile(group: "org.assertj", name: "assertj-core", version: "3.3.0")
-    testCompile(group: "org.codehaus.sonar.sslr", name: "sslr-testing-harness",
-            version: "1.20") {
-        exclude(group: "junit", module: "junit")
-        exclude(group: "org.easytesting", module: "fest-assert")
+
+    testImplementation("org.codehaus.sonar.sslr:sslr-testing-harness:1.20") {
+        exclude group: "junit", module: "junit"
+        exclude group: "org.easytesting", module: "fest-assert"
     }
 }
 
-javadoc.options.links("http://docs.oracle.com/javase/8/docs/api/")
-
-task enforceVersion << {
-    def foundVersion = JavaVersion.current()
-    if (foundVersion != javaVersion)
-        throw new IllegalStateException("Wrong java version; required is " +
-                javaVersion + ", but found " + foundVersion)
-}
-
-compileJava.dependsOn(enforceVersion)
-
-/*
- * Necessary! Otherwise TestNG will not be used...
- */
-test {
-    useTestNG() {
-        useDefaultListeners = true
-    }
-}
-
-/*
- * Necessary to generate the source and javadoc jars
- */
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = "sources"
-    from sourceSets.main.allSource
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = "javadoc"
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives jar
-    archives sourcesJar
-    archives javadocJar
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = "2.11"
-    distributionUrl = "http://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
-}
+javadoc.options.links("https://docs.oracle.com/javase/8/docs/api/")
 
 project.ext {
     gitrwscm = sprintf("git@github.com:litesolutions/%s", name)
@@ -107,85 +49,69 @@ project.ext {
     sonatypeSnapshots = "https://oss.sonatype.org/content/repositories/snapshots/"
 }
 
-task checkSigningRequirements << {
-    def requiredProperties = ["litesolutions.mavenUsername", "litesolutions.mavenPassword"]
-    def noDice = false
-    requiredProperties.each {
-        if (project.properties[it] == null) {
-            noDice = true
-            System.err.printf("property \"%s\" is not defined!", it)
-        }
-    }
-    if (noDice)
-        throw new IllegalStateException("missing required properties for " +
-                "upload")
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
-uploadArchives {
-    dependsOn(checkSigningRequirements)
-    repositories {
-        mavenDeployer {
-            beforeDeployment {
-                MavenDeployment deployment -> signing.signPom(deployment)
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = "${project.getGroup()}"
+            artifactId = "${project.getName()}"
+            version = "${project.getVersion()}"
+            from components.java
+
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
             }
-
-            repository(url: "${sonatypeStaging}") {
-                authentication(
-                        userName: project.properties["litesolutions.mavenUsername"],
-                        password: project.properties["litesolutions.mavenPassword"]
-                )
+            pom.withXml {
+                asNode().dependencies.'*'.each() {
+                    it.scope*.value = 'compile'
+                }
             }
+            pom {
+                description = "${project.description}"
+                url = "${projectURL}"
+                packaging = "jar"
 
-            snapshotRepository(url: "${sonatypeSnapshots}") {
-                authentication(
-                        userName: project.properties["litesolutions.mavenUsername"],
-                        password: project.properties["litesolutions.mavenPassword"]
-                )
-            }
-        }
-    }
-}
+                scm {
+                    url = "${gitrwscm}"
+                    connection = "${gitrwscm}"
+                    developerConnection = "${gitroscm}"
+                }
 
-/*
- * Configure pom.xml on install, uploadArchives
- */
-[
-        install.repositories.mavenInstaller,
-        uploadArchives.repositories.mavenDeployer
-]*.pom*.whenConfigured { pom ->
-    pom.project {
-        name "${project.name}"
-        description "${project.description}"
-        packaging "jar"
-        url "${projectURL}"
+                licenses {
+                    license {
+                        name = "Apache Software License, version 2.0"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0"
+                    }
+                }
 
-        scm {
-            url "${gitrwscm}"
-            connection "${gitrwscm}"
-            developerConnection "${gitroscm}"
-        }
-
-        licenses {
-            license {
-                name "Apache Software License, version 2.0"
-                url "http://www.apache.org/licenses/LICENSE-2.0"
-                distribution "repo"
-            }
-        }
-
-        developers {
-            developer {
-                id "fge"
-                name "Francis Galiegue"
-                email "fgaliegue@gmail.com"
+                developers {
+                    developer {
+                        id = "fge"
+                        name = "Francis Galiegue"
+                        email = "fgaliegue@gmail.com"
+                    }
+                    developer {
+                        id = "daimor"
+                        name = "Dmitry Maslennikov"
+                        email = "mrdaimor@gmail.com"
+                    }
+                }
             }
         }
     }
 }
 
-ext.forRelease = !version.endsWith("-SNAPSHOT")
-signing {
-    required { forRelease && gradle.taskGraph.hasTask("uploadArchives") }
-    sign configurations.archives
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
 }
-
