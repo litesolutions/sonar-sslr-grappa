@@ -7,10 +7,11 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-
+  publish:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      packages: write
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK 11
@@ -18,7 +19,9 @@ jobs:
       with:
         java-version: '11'
         distribution: 'adopt'
-    - name: Build with Gradle
-      uses: gradle/gradle-build-action@v2
-      with:
-        arguments: build
+    - name: Validate Gradle wrapper
+      uses: gradle/wrapper-validation-action@v2
+    - name: Publish package
+      run: gradle publish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
