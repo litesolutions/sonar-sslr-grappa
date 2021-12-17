@@ -11,7 +11,7 @@
  *
  */
 
-package es.litesolutions.sonar.grappa;
+package org.litesolutions.sonar.grappa;
 
 import com.github.fge.grappa.parsers.ListeningParser;
 import com.github.fge.grappa.run.context.Context;

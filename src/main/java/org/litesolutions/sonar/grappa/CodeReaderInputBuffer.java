@@ -11,7 +11,7 @@
  *
  */
 
-package es.litesolutions.sonar.grappa;
+package org.litesolutions.sonar.grappa;
 
 import com.github.fge.grappa.buffers.CharSequenceInputBuffer;
 import com.github.fge.grappa.buffers.InputBuffer;

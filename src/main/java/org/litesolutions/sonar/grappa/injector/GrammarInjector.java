@@ -11,11 +11,11 @@
  *
  */
 
-package es.litesolutions.sonar.grappa.injector;
+package org.litesolutions.sonar.grappa.injector;
 
 import com.sonar.sslr.api.Grammar;
 import com.sonar.sslr.impl.Parser;
-import es.litesolutions.sonar.grappa.GrappaSslrFactory;
+import org.litesolutions.sonar.grappa.GrappaSslrFactory;
 import org.sonar.sslr.grammar.LexerfulGrammarBuilder;
 
 /**

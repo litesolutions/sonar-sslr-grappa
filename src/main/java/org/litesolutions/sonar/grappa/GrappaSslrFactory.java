@@ -11,19 +11,17 @@
  *
  */
 
-package es.litesolutions.sonar.grappa;
+package org.litesolutions.sonar.grappa;
 
 import com.github.fge.grappa.Grappa;
 import com.github.fge.grappa.rules.Rule;
 import com.github.fge.grappa.run.ListeningParseRunner;
 import com.github.fge.grappa.run.trace.TracingListener;
 import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.impl.Lexer;
 import com.sonar.sslr.impl.Parser;
-import es.litesolutions.sonar.grappa.injector.GrammarInjector;
-import es.litesolutions.sonar.grappa.injector.LegacyGrammarInjector;
-import es.litesolutions.sonar.grappa.listeners.ListenerSupplier;
-import org.sonar.squidbridge.AstScanner;
+import org.litesolutions.sonar.grappa.injector.GrammarInjector;
+import org.litesolutions.sonar.grappa.injector.LegacyGrammarInjector;
+import org.litesolutions.sonar.grappa.listeners.ListenerSupplier;
 import org.sonar.sslr.grammar.GrammarRuleKey;
 import org.sonar.sslr.grammar.LexerfulGrammarBuilder;
 
@@ -49,7 +47,7 @@ import java.util.function.Function;
  * </pre>
  *
  * <p>You then use the {@link #getParser()} method to build a parser, which you
- * will then use in an {@link AstScanner}.</p>
+ * will then use in an .</p>
  *
  * <p>Unless otherwise noted, all methods of this class do not accept null
  * arguments; if a null argument is passed, a {@link NullPointerException} will
@@ -92,7 +90,7 @@ public final class GrappaSslrFactory
      *
      * @return a new parser instance
      */
-    public Parser<Grammar> getParser()
+    public GrappaSslrParser<Grammar> getParser()
     {
         final GrappaChannel channel = new GrappaChannel(rule);
 
@@ -101,12 +99,12 @@ public final class GrappaSslrFactory
         final LexerfulGrammarBuilder builder = getGrammarBuilder();
         builder.setRootRule(entryPoint);
 
-        final Lexer lexer = Lexer.builder()
+        final GrappaSslrLexer lexer = GrappaSslrLexer.builder()
             .withFailIfNoChannelToConsumeOneCharacter(true)
             .withChannel(channel)
             .build();
 
-        return Parser.builder(builder.build())
+        return GrappaSslrParser.grappaBuilder(builder.build())
             .withLexer(lexer)
             .build();
     }

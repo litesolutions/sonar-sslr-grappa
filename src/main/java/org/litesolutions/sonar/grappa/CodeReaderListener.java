@@ -11,9 +11,8 @@
  *
  */
 
-package es.litesolutions.sonar.grappa;
+package org.litesolutions.sonar.grappa;
 
-import com.github.fge.grappa.exceptions.GrappaException;
 import com.github.fge.grappa.matchers.base.Matcher;
 import com.github.fge.grappa.run.ListeningParseRunner;
 import com.github.fge.grappa.run.ParseRunnerListener;
@@ -24,13 +23,11 @@ import com.github.fge.grappa.run.events.MatchSuccessEvent;
 import com.github.fge.grappa.run.events.PostParseEvent;
 import com.github.fge.grappa.run.events.PreParseEvent;
 import com.github.fge.grappa.stack.ValueStack;
+import com.github.fge.grappa.support.Position;
 import com.sonar.sslr.api.GenericTokenType;
+import com.sonar.sslr.api.RecognitionException;
 import com.sonar.sslr.api.Token;
 import com.sonar.sslr.api.Trivia;
-import com.sonar.sslr.impl.Lexer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sonar.sslr.channel.Channel;
 import org.sonar.sslr.channel.CodeReader;
 
@@ -38,7 +35,7 @@ import java.net.URI;
 
 /**
  * A parsing listener associated with a Sonar {@link CodeReader} and {@link
- * Lexer}
+ * GrappaSslrLexer}
  *
  * <p>This listener will handle both the consumption of characters from the code
  * reader, and adding tokens to the lexer.</p>
@@ -57,11 +54,9 @@ import java.net.URI;
  * @see SonarParserBase
  */
 public final class CodeReaderListener
-    extends ParseRunnerListener<Token.Builder>
-{
-    private final Lexer lexer;
+        extends ParseRunnerListener<Token.Builder> {
+    private final GrappaSslrLexer lexer;
     private final CodeReader reader;
-    private static final Logger LOG = LoggerFactory.getLogger(CodeReaderListener.class);
 
     /*
      * The root matcher. We get it from the initial root context.
@@ -71,26 +66,25 @@ public final class CodeReaderListener
      * The number of characters consumed by the root matcher.
      */
     private int consumed = 0;
+    private Position position = null;
 
-    public CodeReaderListener(final CodeReader reader, final Lexer lexer)
-    {
+    public CodeReaderListener(final CodeReader reader, final GrappaSslrLexer lexer) {
         this.lexer = lexer;
         this.reader = reader;
     }
 
     @Override
-    public void beforeParse(final PreParseEvent<Token.Builder> event)
-    {
+    public void beforeParse(final PreParseEvent<Token.Builder> event) {
         final MatcherContext<Token.Builder> context = event.getContext();
         rootMatcher = context.getMatcher();
     }
 
     @Override
-    public void matchSuccess(final MatchSuccessEvent<Token.Builder> event)
-    {
+    public void matchSuccess(final MatchSuccessEvent<Token.Builder> event) {
         final MatcherContext<Token.Builder> context = event.getContext();
         if (!context.inPredicate())
             consumed = Math.max(consumed, context.getCurrentIndex());
+            this.position = context.getPosition();
         if (context.getLevel() != 0)
             return;
         if (context.getMatcher() != rootMatcher)
@@ -98,8 +92,7 @@ public final class CodeReaderListener
     }
 
     @Override
-    public void matchFailure(final MatchFailureEvent<Token.Builder> event)
-    {
+    public void matchFailure(final MatchFailureEvent<Token.Builder> event) {
         final MatcherContext<Token.Builder> context = event.getContext();
         if (context.getLevel() != 0)
             return;
@@ -108,8 +101,7 @@ public final class CodeReaderListener
     }
 
     @Override
-    public void afterParse(final PostParseEvent<Token.Builder> event)
-    {
+    public void afterParse(final PostParseEvent<Token.Builder> event) {
         final int length = reader.length();
 
         /*
@@ -118,44 +110,21 @@ public final class CodeReaderListener
 
         final ParsingResult<Token.Builder> result = event.getResult();
         if (!result.isSuccess())
-            throw new GrappaException("match failure (consumed: "
-                + consumed + " out of " + length + ')');
+            throw new RecognitionException(position.getLine(), "match failure (consumed: "
+                    + consumed + " out of " + length + ')');
 
         /*
          * Check that we did consume all the text
          */
 
-        if (consumed != length){        	
-        	int saltoLineaIni = consumed;
-        	int saltoLineaEnd = consumed;
-        	for(int i=consumed; i>0;i--){
-        		char u =  reader.charAt(i);
-        		if (u == '\n' || u == '\r'){
-        			saltoLineaIni = i;
-        			break;
-        		}
-               
-        	}
-        	for(int i=consumed; i<length;i++){
-        		char u =  reader.charAt(i);
-        		if (u == '\n' || u == '\r'){
-        			saltoLineaEnd = i;
-        			break;
-        		}
-               
-        	}
-        	String lineToShow = "";
-        	for(int i=saltoLineaIni; i<saltoLineaEnd;i++){
-        		lineToShow = lineToShow + reader.charAt(i);
-        	}
-        	
-        	LOG.error("LINE ERROR: "+lineToShow);
-        	
-        	//Escribir de reader[consumed-10] a reader[consumed+10]
-        	throw new GrappaException("was expecting to fully match, but only "
-                    + consumed + " chars were matched out of " + length);
+        for (int i = 0; i< consumed; i++) {
+            reader.pop();
         }
-            
+
+        if (consumed != length) {
+            throw new RecognitionException(reader.getLinePosition(), "Parsing failure");
+        }
+
 
         final ValueStack<Token.Builder> stack = result.getValueStack();
 

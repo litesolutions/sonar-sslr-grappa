@@ -11,14 +11,14 @@
  *
  */
 
-package es.litesolutions.sonar.grappa;
+package org.litesolutions.sonar.grappa;
 
 import com.github.fge.grappa.buffers.InputBuffer;
 import com.github.fge.grappa.rules.Rule;
 import com.github.fge.grappa.run.ListeningParseRunner;
 import com.sonar.sslr.api.Token;
 import com.sonar.sslr.impl.Lexer;
-import es.litesolutions.sonar.grappa.listeners.ListenerSupplier;
+import org.litesolutions.sonar.grappa.listeners.ListenerSupplier;
 import org.sonar.sslr.channel.Channel;
 import org.sonar.sslr.channel.CodeReader;
 
@@ -33,7 +33,7 @@ import java.util.Objects;
  */
 @ParametersAreNonnullByDefault
 public final class GrappaChannel
-    extends Channel<Lexer>
+    extends Channel<GrappaSslrLexer>
 {
     private final Rule rule;
 
@@ -67,7 +67,7 @@ public final class GrappaChannel
     }
 
     @Override
-    public boolean consume(final CodeReader code, final Lexer output)
+    public boolean consume(final CodeReader code, final GrappaSslrLexer output)
     {
         final InputBuffer buffer = new CodeReaderInputBuffer(code);
 

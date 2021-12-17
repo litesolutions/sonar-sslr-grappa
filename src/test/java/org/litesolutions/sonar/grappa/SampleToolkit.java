@@ -11,10 +11,9 @@
  *
  */
 
-package es.litesolutions.sonar.grappa;
+package org.litesolutions.sonar.grappa;
 
 import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.impl.Parser;
 import org.sonar.colorizer.Tokenizer;
 import org.sonar.sslr.toolkit.AbstractConfigurationModel;
 import org.sonar.sslr.toolkit.ConfigurationProperty;
@@ -87,15 +86,15 @@ public final class SampleToolkit
     private static final class DummyConfigurationModel
         extends AbstractConfigurationModel
     {
-        private final Parser<Grammar> parser;
+        private final GrappaSslrParser<Grammar> parser;
 
-        private DummyConfigurationModel(final Parser<Grammar> parser)
+        private DummyConfigurationModel(final GrappaSslrParser<Grammar> parser)
         {
             this.parser = parser;
         }
 
         @Override
-        public Parser doGetParser()
+        public GrappaSslrParser<Grammar> doGetParser()
         {
             return parser;
         }
