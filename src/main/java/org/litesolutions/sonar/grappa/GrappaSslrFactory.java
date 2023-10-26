@@ -25,7 +25,11 @@ import org.litesolutions.sonar.grappa.listeners.ListenerSupplier;
 import org.sonar.sslr.grammar.GrammarRuleKey;
 import org.sonar.sslr.grammar.LexerfulGrammarBuilder;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+
+import java.nio.charset.Charset;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -92,21 +96,52 @@ public final class GrappaSslrFactory
      */
     public GrappaSslrParser<Grammar> getParser()
     {
+        return getParserWithCharset(null);
+    }
+    
+    /**
+     * Get a Sonar {@link Parser} from this factory
+     *
+     * @return a new parser instance
+     */
+    public GrappaSslrParser<Grammar> getParserWithCharset(@Nullable String charsetName)
+    {
         final GrappaChannel channel = new GrappaChannel(rule);
 
         suppliers.forEach(channel::addListenerSupplier);
 
         final LexerfulGrammarBuilder builder = getGrammarBuilder();
         builder.setRootRule(entryPoint);
-
-        final GrappaSslrLexer lexer = GrappaSslrLexer.builder()
-            .withFailIfNoChannelToConsumeOneCharacter(true)
-            .withChannel(channel)
-            .build();
-
+        
+        GrappaSslrLexer lexer = getLexer(channel, charsetName);
+       
         return GrappaSslrParser.grappaBuilder(builder.build())
             .withLexer(lexer)
             .build();
+    }
+    
+    private GrappaSslrLexer getLexer(GrappaChannel channel,@Nullable String charsetName) {
+    	if(charsetName!=null) {
+    		Charset charset = getCharset(charsetName);
+    		return GrappaSslrLexer.builder().withCharset(charset)
+    	            .withFailIfNoChannelToConsumeOneCharacter(true)
+    	            .withChannel(channel)
+    	            .build();
+    	}else return GrappaSslrLexer.builder()
+                .withFailIfNoChannelToConsumeOneCharacter(true)
+                .withChannel(channel)
+                .build();
+    }
+    
+    private Charset getCharset(String charset) {
+    	
+    	try {
+			return Charset.forName(charset);
+		} catch (UnsupportedCharsetException e) {
+			return Charset.defaultCharset();
+		}
+		
+    	
     }
 
     private LexerfulGrammarBuilder getGrammarBuilder()

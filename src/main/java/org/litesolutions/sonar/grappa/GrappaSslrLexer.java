@@ -37,7 +37,7 @@ public class GrappaSslrLexer {
     private List<Token> tokens = new ArrayList<>();
 
     public GrappaSslrLexer(GrappaSslrLexer.Builder builder) {
-        this.charset = sun.nio.cs.UTF_8.INSTANCE;
+        this.charset = builder.charset;
         this.configuration = builder.configuration;
         this.channelDispatcher = builder.getChannelDispatcher();
 
