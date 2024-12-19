@@ -5,6 +5,7 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch: # Agrega esta línea para habilitar la ejecución manual
 
 jobs:
   publish:
@@ -21,7 +22,15 @@ jobs:
         distribution: 'adopt'
     - name: Validate Gradle wrapper
       uses: gradle/wrapper-validation-action@v1
-    - name: Publish package
-      run: gradle publish
+      with:
+        min-wrapper-count: 1
+        allow-snapshots: false
+      env:
+        JAVA_HOME: /opt/hostedtoolcache/Java_Adopt_jdk/11.0.25-9/x64
+        JAVA_HOME_11_X64: /opt/hostedtoolcache/Java_Adopt_jdk/11.0.25-9/x64
+    - name: Publish package to Nexus
+      run: ./gradlew publish --no-daemon -PnexusUsername=${{ secrets.NEXUS_USERNAME }} -PnexusPassword=${{ secrets.NEXUS_PASSWORD }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+        NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
