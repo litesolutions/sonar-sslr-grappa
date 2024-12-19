@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [ master ]
   workflow_dispatch: # Agrega esta línea para habilitar la ejecución manual
-
 jobs:
   publish:
     runs-on: ubuntu-latest
