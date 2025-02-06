@@ -132,7 +132,7 @@ public Rule anbncn()
 ### The parser
 
 In order to write a parser, you will need to extend `SonarParserBase`; this
-(abstract) parser implementation extends `ListeningParser<Token.Builder>`
+(abstract) parser implementation extends `EventBusParser<Token.Builder>`
 (which, by the way, means you can register any listener to your parser
 implementation provided it has the necessary annotations; see
 [`EventBus`](http://docs.guava-libraries.googlecode.com/git-history/release/javadoc/com/google/common/eventbus/EventBus.html)).
@@ -211,4 +211,3 @@ import com.google.common.eventbus.Subscribe;
 ```
 
 because the latter is not guaranteed to succeed!
-

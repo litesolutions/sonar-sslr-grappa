@@ -19,17 +19,20 @@ group = "org.litesolutions"
 version = "0.7.2"
 description = "Grappa integration for Sonar's SSLR"
 
-def javaVersion = JavaVersion.VERSION_1_8
+def javaVersion = JavaVersion.VERSION_17
 sourceCompatibility = javaVersion
 targetCompatibility = javaVersion // defaults to sourceCompatibility
 
 repositories {
     mavenCentral()
+    maven { url "https://jitpack.io" } // Added JitPack repository
+    maven { url "https://repo1.maven.org/maven2/" }
 }
 
 dependencies {
-    implementation('org.codehaus.sonar.sslr-squid-bridge:sslr-squid-bridge:2.6')
-    implementation('com.github.fge:grappa:2.0.4:all') {
+    implementation('com.github.litesolutions:sslr-squid-bridge:3.0-SNAPSHOT')
+    implementation('org.sonarsource.sslr:sslr-core:1.24.0.633')
+    implementation('com.github.litesolutions:grappa:3.0-SNAPSHOT') {
         exclude group: "com.google.guava", module: "guava"
     }
     testImplementation("org.codehaus.sonar.sslr:sslr-testing-harness:1.20") {
@@ -49,6 +52,10 @@ project.ext {
 java {
     withJavadocJar()
     withSourcesJar()
+}
+
+tasks.withType(Javadoc).configureEach {
+    enabled = false
 }
 
 publishing {

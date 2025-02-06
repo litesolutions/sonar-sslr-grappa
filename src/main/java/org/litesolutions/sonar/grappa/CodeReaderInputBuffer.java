@@ -21,10 +21,10 @@ import com.github.fge.grappa.support.IndexRange;
 import com.github.fge.grappa.support.Position;
 import org.sonar.sslr.channel.CodeBuffer;
 import org.sonar.sslr.channel.CodeReader;
-import r.com.google.common.base.Preconditions;
-import r.com.google.common.collect.Range;
-import r.com.google.common.util.concurrent.Futures;
-import r.com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Range;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
@@ -60,6 +60,8 @@ public final class CodeReaderInputBuffer
     private final int length;
     private final Future<LineCounter> lineCounter;
 
+
+
     public CodeReaderInputBuffer(@Nonnull final CodeReader reader) {
         this.reader = Objects.requireNonNull(reader);
         length = reader.length();
@@ -68,8 +70,17 @@ public final class CodeReaderInputBuffer
 
     @Override
     public char charAt(final int index) {
-        return index >= 0 && index < length ? reader.charAt(index) : Chars.EOI;
+        return index >= 0 && index < length ? reader.charAt(index) : (char) -1;
     }
+
+    @Override
+    public CharSequence subSequence(int start, int end) {
+        if (start < 0 || end > length || start > end) {
+            throw new IndexOutOfBoundsException("Invalid subsequence range: " + start + " to " + end);
+        }
+        return extract(start, end);
+    }
+
 
     /**
      * Returns the Unicode code point starting at a given index
@@ -137,6 +148,7 @@ public final class CodeReaderInputBuffer
             end--;
         return extract(start, end);
     }
+
 
     /**
      * Get the index range matching a given line number

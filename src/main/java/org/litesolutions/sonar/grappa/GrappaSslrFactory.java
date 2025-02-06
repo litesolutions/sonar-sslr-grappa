@@ -15,7 +15,7 @@ package org.litesolutions.sonar.grappa;
 
 import com.github.fge.grappa.Grappa;
 import com.github.fge.grappa.rules.Rule;
-import com.github.fge.grappa.run.ListeningParseRunner;
+import com.github.fge.grappa.run.ParseRunner;
 import com.github.fge.grappa.run.trace.TracingListener;
 import com.sonar.sslr.api.Grammar;
 import com.sonar.sslr.impl.Parser;
@@ -98,7 +98,7 @@ public final class GrappaSslrFactory
     {
         return getParserWithCharset(null);
     }
-    
+
     /**
      * Get a Sonar {@link Parser} from this factory
      *
@@ -112,14 +112,14 @@ public final class GrappaSslrFactory
 
         final LexerfulGrammarBuilder builder = getGrammarBuilder();
         builder.setRootRule(entryPoint);
-        
+
         GrappaSslrLexer lexer = getLexer(channel, charsetName);
-       
+
         return GrappaSslrParser.grappaBuilder(builder.build())
             .withLexer(lexer)
             .build();
     }
-    
+
     private GrappaSslrLexer getLexer(GrappaChannel channel,@Nullable String charsetName) {
     	if(charsetName!=null) {
     		Charset charset = getCharset(charsetName);
@@ -132,16 +132,16 @@ public final class GrappaSslrFactory
                 .withChannel(channel)
                 .build();
     }
-    
+
     private Charset getCharset(String charset) {
-    	
+
     	try {
 			return Charset.forName(charset);
 		} catch (UnsupportedCharsetException e) {
 			return Charset.defaultCharset();
 		}
-		
-    	
+
+
     }
 
     private LexerfulGrammarBuilder getGrammarBuilder()
@@ -247,7 +247,7 @@ public final class GrappaSslrFactory
         /**
          * Add a {@link ListenerSupplier} to the factory
          *
-         * <p>Since a {@link ListeningParseRunner} is used, it means you can add
+         * <p>Since a {@link ParseRunner} is used, it means you can add
          * further parsing listeners when the file is parsed; for instance, you
          * may want to add a {@link TracingListener} to debug the parsing
          * process.</p>

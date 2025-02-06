@@ -13,7 +13,7 @@
 
 package org.litesolutions.sonar.grappa.listeners;
 
-import com.github.fge.grappa.run.ParseRunnerListener;
+import com.github.fge.grappa.run.ParseEventListener;
 import com.sonar.sslr.api.Token;
 import com.sonar.sslr.impl.Lexer;
 import org.litesolutions.sonar.grappa.GrappaChannel;
@@ -23,7 +23,7 @@ import org.sonar.sslr.channel.CodeReader;
 import javax.annotation.Nonnull;
 
 /**
- * Create a {@link ParseRunnerListener} given a {@link CodeReader} and a {@link
+ * Create a {@link ParseEventListener} given a {@link CodeReader} and a {@link
  * Lexer} as arguments
  *
  * <p>This allows you to register listeners to a {@link GrappaChannel}.</p>
@@ -32,6 +32,6 @@ import javax.annotation.Nonnull;
 public interface ListenerSupplier
 {
     @Nonnull
-    ParseRunnerListener<Token.Builder> create(final CodeReader reader,
+    ParseEventListener<Token.Builder> create(final CodeReader reader,
         final GrappaSslrLexer lexer);
 }

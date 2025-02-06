@@ -15,7 +15,7 @@ package org.litesolutions.sonar.grappa;
 
 import com.github.fge.grappa.buffers.InputBuffer;
 import com.github.fge.grappa.rules.Rule;
-import com.github.fge.grappa.run.ListeningParseRunner;
+import com.github.fge.grappa.run.ParseRunner;
 import com.sonar.sslr.api.Token;
 import com.sonar.sslr.impl.Lexer;
 import org.litesolutions.sonar.grappa.listeners.ListenerSupplier;
@@ -71,8 +71,8 @@ public final class GrappaChannel
     {
         final InputBuffer buffer = new CodeReaderInputBuffer(code);
 
-        final ListeningParseRunner<Token.Builder> runner
-            = new ListeningParseRunner<>(rule);
+        final ParseRunner<Token.Builder> runner
+            = new ParseRunner<>(rule);
 
         suppliers.stream().map(supplier -> supplier.create(code, output))
             .forEach(runner::registerListener);

@@ -14,9 +14,6 @@
 package org.litesolutions.sonar.grappa;
 
 import com.sonar.sslr.api.Grammar;
-import org.sonar.colorizer.Tokenizer;
-import org.sonar.sslr.toolkit.AbstractConfigurationModel;
-import org.sonar.sslr.toolkit.ConfigurationProperty;
 
 import java.util.Collections;
 import java.util.List;
@@ -83,32 +80,26 @@ public final class SampleToolkit
         */
     }
 
-    private static final class DummyConfigurationModel
-        extends AbstractConfigurationModel
-    {
-        private final GrappaSslrParser<Grammar> parser;
+    // private static final class DummyConfigurationModel
+    //     extends AbstractConfigurationModel
+    // {
+    //     private final GrappaSslrParser<Grammar> parser;
 
-        private DummyConfigurationModel(final GrappaSslrParser<Grammar> parser)
-        {
-            this.parser = parser;
-        }
+    //     private DummyConfigurationModel(final GrappaSslrParser<Grammar> parser)
+    //     {
+    //         this.parser = parser;
+    //     }
 
-        @Override
-        public GrappaSslrParser<Grammar> doGetParser()
-        {
-            return parser;
-        }
+    //     @Override
+    //     public GrappaSslrParser<Grammar> doGetParser()
+    //     {
+    //         return parser;
+    //     }
 
-        @Override
-        public List<Tokenizer> doGetTokenizers()
-        {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public List<ConfigurationProperty> getProperties()
-        {
-            return Collections.emptyList();
-        }
-    }
+    //     @Override
+    //     public List<ConfigurationProperty> getProperties()
+    //     {
+    //         return Collections.emptyList();
+    //     }
+    // }
 }

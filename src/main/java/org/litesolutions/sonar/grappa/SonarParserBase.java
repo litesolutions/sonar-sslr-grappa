@@ -13,7 +13,7 @@
 
 package org.litesolutions.sonar.grappa;
 
-import com.github.fge.grappa.parsers.ListeningParser;
+import com.github.fge.grappa.parsers.EventBusParser;
 import com.github.fge.grappa.run.context.Context;
 import com.github.fge.grappa.support.Position;
 import com.sonar.sslr.api.Token;
@@ -42,7 +42,7 @@ import com.sonar.sslr.api.TokenType;
 @SuppressWarnings({ "AutoBoxing", "AbstractClassNeverImplemented" })
 // @formatter:off
 public abstract class SonarParserBase
-    extends ListeningParser<Token.Builder>
+    extends EventBusParser<Token.Builder>
 {
     public boolean pushToken(final TokenType tokenType)
     {

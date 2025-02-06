@@ -14,8 +14,8 @@
 package org.litesolutions.sonar.grappa;
 
 import com.github.fge.grappa.matchers.base.Matcher;
-import com.github.fge.grappa.run.ListeningParseRunner;
-import com.github.fge.grappa.run.ParseRunnerListener;
+import com.github.fge.grappa.run.ParseRunner;
+import com.github.fge.grappa.run.ParseEventListener;
 import com.github.fge.grappa.run.ParsingResult;
 import com.github.fge.grappa.run.context.MatcherContext;
 import com.github.fge.grappa.run.events.MatchFailureEvent;
@@ -50,11 +50,11 @@ import java.net.URI;
  * to the lexer.</p>
  *
  * @see Channel#consume(CodeReader, Object)
- * @see ListeningParseRunner
+ * @see ParseRunner
  * @see SonarParserBase
  */
 public final class CodeReaderListener
-        extends ParseRunnerListener<Token.Builder> {
+        extends ParseEventListener<Token.Builder> {
     private final GrappaSslrLexer lexer;
     private final CodeReader reader;
 
