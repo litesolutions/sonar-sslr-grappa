@@ -27,15 +27,21 @@ repositories {
     mavenCentral()
     maven { url "https://jitpack.io" } // Added JitPack repository
     maven { url "https://repo1.maven.org/maven2/" }
+    maven { 
+        url = uri("https://maven.pkg.github.com/litesolutions/grappa")
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
+            password = project.findProperty("gpr.token") ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
 
 }
 
 dependencies {
-    implementation('com.github.litesolutions:sslr-squid-bridge-j17:2.6.2')
+    implementation('org.sonarsource.sslr-squid-bridge:sslr-squid-bridge:2.6.1-j17')
     implementation('org.sonarsource.sslr:sslr-core:1.24.0.633')
-    implementation('com.github.litesolutions:grappa:3.0-SNAPSHOT') {
-        exclude group: "com.google.guava", module: "guava"
-    }
+    implementation('org.litesolutions:grappa:3.0')
+    implementation('com.google.guava:guava:31.1-jre')
     testImplementation("org.codehaus.sonar.sslr:sslr-testing-harness:1.20") {
         exclude group: "junit", module: "junit"
         exclude group: "org.easytesting", module: "fest-assert"
