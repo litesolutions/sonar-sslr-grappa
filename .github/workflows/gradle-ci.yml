@@ -82,8 +82,8 @@ jobs:
         # specify the artifact to publish
         run: ./gradlew publish
         env:
-          GITHUB_USERNAME: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
       - name: Bump release version
         if: github.event_name == 'release'
