@@ -90,7 +90,7 @@ publishing {
             name = "GitHubPackages"
             url = "https://maven.pkg.github.com/litesolutions/sonar-sslr-grappa"
             credentials {
-                username = System.getenv("GITHUB_ACTOR")
+                username = System.getenv("GITHUB_USERNAME")
                 password = System.getenv("GITHUB_TOKEN")
             }
         }
