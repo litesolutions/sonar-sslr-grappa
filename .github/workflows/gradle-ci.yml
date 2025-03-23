@@ -62,8 +62,8 @@ jobs:
           ./gradlew build
         #run: mvn -s $GITHUB_WORKSPACE/.github/workflows/maven-settings.xml -B package -Drevision=${{ steps.set-version.outputs.version }}
         env:
-          USER_NAME: ${{ github.actor }}
-          ACCESS_TOKEN: ${{ github.token }}
+          GITHUB_USERNAME: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       # - name: Publish Test Report
       #   if: ${{ always() }}
