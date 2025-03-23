@@ -64,12 +64,17 @@ java {
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        /*mavenJava(MavenPublication) {
             from components.java
         }
 
         gpr(MavenPublication) {
             from(components.java)
+        }*/
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
         }
     }
     repositories {
