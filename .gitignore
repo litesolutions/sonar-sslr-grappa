@@ -2,6 +2,7 @@
 target
 .idea
 build
+bin
 .gradle
 out
 classes

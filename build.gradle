@@ -38,10 +38,10 @@ repositories {
 }
 
 dependencies {
-    implementation('org.sonarsource.sslr-squid-bridge:sslr-squid-bridge:2.6.1-j17')
-    implementation('org.sonarsource.sslr:sslr-core:1.24.0.633')
-    implementation('org.litesolutions:grappa:3.0')
-    implementation('com.google.guava:guava:31.1-jre')
+    api('org.sonarsource.sslr-squid-bridge:sslr-squid-bridge:2.6.1-j17')
+    api('org.sonarsource.sslr:sslr-core:1.24.0.633')
+    api('org.litesolutions:grappa:3.0')
+    api('com.google.guava:guava:31.1-jre')
     testImplementation("org.codehaus.sonar.sslr:sslr-testing-harness:1.20") {
         exclude group: "junit", module: "junit"
         exclude group: "org.easytesting", module: "fest-assert"
