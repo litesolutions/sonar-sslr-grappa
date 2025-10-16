@@ -16,7 +16,7 @@ plugins {
 }
 
 group = "org.litesolutions"
-version = "0.93"
+version = "1.1"
 description = "Grappa integration for Sonar's SSLR"
 
 def javaVersion = JavaVersion.VERSION_17
