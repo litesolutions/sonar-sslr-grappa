@@ -21,6 +21,7 @@ public class GrappaSslrParser<G extends Grammar> extends Parser<G> {
     private RuleDefinition rootRule;
     private final GrappaSslrLexer lexer;
     private final G grammar;
+    private volatile CompiledGrammar compiledGrammar;
 
     /**
      * @since 1.16
@@ -50,7 +51,16 @@ public class GrappaSslrParser<G extends Grammar> extends Parser<G> {
     }
 
     public AstNode parse(@Nonnull List<Token> tokens) {
-        CompiledGrammar g = MutableGrammarCompiler.compile(rootRule);
+        CompiledGrammar g = compiledGrammar;
+        if (g == null) {
+            synchronized (this) {
+                g = compiledGrammar;
+                if (g == null) {
+                    g = MutableGrammarCompiler.compile(rootRule);
+                    compiledGrammar = g;
+                }
+            }
+        }
         return LexerfulAstCreator.create(Machine.parse(tokens, g), tokens);
     }
 
@@ -64,6 +74,7 @@ public class GrappaSslrParser<G extends Grammar> extends Parser<G> {
 
     public void setRootRule(@Nonnull Rule rootRule) {
         this.rootRule = (RuleDefinition) rootRule;
+        this.compiledGrammar = null;
     }
 
     public static <G extends Grammar> GrappaSslrParser.Builder<G> grappaBuilder(G grammar) {
