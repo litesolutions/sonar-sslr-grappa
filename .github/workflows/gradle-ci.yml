@@ -5,6 +5,7 @@ on:
   push:
     branches:
     - master
+    - performance
   pull_request:
     branches:
     - master
