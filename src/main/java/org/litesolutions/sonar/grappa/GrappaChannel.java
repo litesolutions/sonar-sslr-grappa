@@ -69,6 +69,8 @@
      @Override
      public boolean consume(final CodeReader code, final GrappaSslrLexer output)
      {
+         long startNanos = System.nanoTime();
+         final int length = code.length();
          final InputBuffer buffer = new CodeReaderInputBuffer(code);
 
          final ParseRunner<Token.Builder> runner
@@ -88,10 +90,15 @@
           * We therefore pop() all the contents of the reader at this point...
           */
 
-         final int length = code.length();
-
          for (int i = 0; i < length; i++)
              code.pop();
+
+         long elapsedMillis = (System.nanoTime() - startNanos) / 1_000_000L;
+         System.out.println("[GrappaChannel] Consumed source uri=" + output.getURI()
+             + ", parserRule=" + rule
+             + ", inputLength=" + length
+             + ", tokenCount=" + output.getTokens().size()
+             + ", timeMs=" + elapsedMillis);
 
          return true;
      }

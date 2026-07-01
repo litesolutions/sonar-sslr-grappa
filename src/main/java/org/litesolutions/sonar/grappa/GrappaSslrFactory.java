@@ -88,6 +88,10 @@
          injector = builder.injector;
          entryPoint = builder.entryPoint;
          suppliers = Collections.unmodifiableCollection(builder.suppliers);
+         System.out.println("[GrappaSslrFactory] Factory created for parserClass="
+             + builder.parserClass.getName()
+             + ", entryPoint=" + entryPoint
+             + ", listeners=" + suppliers.size());
      }
 
      /**
@@ -107,6 +111,7 @@
       */
      public GrappaSslrParser<Grammar> getParserWithCharset(@Nullable String charsetName)
      {
+         long startNanos = System.nanoTime();
          final GrappaChannel channel = new GrappaChannel(rule);
 
          suppliers.forEach(channel::addListenerSupplier);
@@ -116,9 +121,16 @@
 
          GrappaSslrLexer lexer = getLexer(channel, charsetName);
 
-         return GrappaSslrParser.grappaBuilder(builder.build())
+         GrappaSslrParser<Grammar> parser = GrappaSslrParser.grappaBuilder(builder.build())
              .withLexer(lexer)
              .build();
+         long elapsedMillis = (System.nanoTime() - startNanos) / 1_000_000L;
+         System.out.println("[GrappaSslrFactory] Parser built parserId="
+             + System.identityHashCode(parser)
+             + ", charset=" + (charsetName == null ? "<default>" : charsetName)
+             + ", entryPoint=" + entryPoint
+             + ", buildTimeMs=" + elapsedMillis);
+         return parser;
      }
 
      private GrappaSslrLexer getLexer(GrappaChannel channel,@Nullable String charsetName) {

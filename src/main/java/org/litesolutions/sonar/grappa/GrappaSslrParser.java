@@ -7,7 +7,6 @@ import com.sonar.sslr.api.Token;
 import com.sonar.sslr.impl.Parser;
 import com.sonar.sslr.impl.matcher.RuleDefinition;
 import org.sonar.sslr.internal.matchers.LexerfulAstCreator;
-import org.sonar.sslr.internal.vm.CompilableGrammarRule;
 import org.sonar.sslr.internal.vm.CompiledGrammar;
 import org.sonar.sslr.internal.vm.Machine;
 import org.sonar.sslr.internal.vm.MutableGrammarCompiler;
@@ -38,6 +37,7 @@ public class GrappaSslrParser<G extends Grammar> extends Parser<G> {
         this.lexer = builder.lexer;
         this.grammar = builder.grammar;
         this.rootRule = (RuleDefinition) this.grammar.getRootRule();
+        compileGrammarIfNeeded("constructor");
     }
 
     public AstNode parse(@Nonnull File file) {
@@ -51,16 +51,7 @@ public class GrappaSslrParser<G extends Grammar> extends Parser<G> {
     }
 
     public AstNode parse(@Nonnull List<Token> tokens) {
-        CompiledGrammar g = compiledGrammar;
-        if (g == null) {
-            synchronized (this) {
-                g = compiledGrammar;
-                if (g == null) {
-                    g = MutableGrammarCompiler.compile(rootRule);
-                    compiledGrammar = g;
-                }
-            }
-        }
+        CompiledGrammar g = compileGrammarIfNeeded("parse");
         return LexerfulAstCreator.create(Machine.parse(tokens, g), tokens);
     }
 
@@ -75,6 +66,28 @@ public class GrappaSslrParser<G extends Grammar> extends Parser<G> {
     public void setRootRule(@Nonnull Rule rootRule) {
         this.rootRule = (RuleDefinition) rootRule;
         this.compiledGrammar = null;
+        System.out.println("[GrappaSslrParser] Root rule changed. Compiled grammar cache cleared for parser "
+            + System.identityHashCode(this));
+    }
+
+    private CompiledGrammar compileGrammarIfNeeded(String trigger) {
+        CompiledGrammar g = compiledGrammar;
+        if (g == null) {
+            synchronized (this) {
+                g = compiledGrammar;
+                if (g == null) {
+                    long startNanos = System.nanoTime();
+                    g = MutableGrammarCompiler.compile(rootRule);
+                    compiledGrammar = g;
+                    long elapsedMillis = (System.nanoTime() - startNanos) / 1_000_000L;
+                    System.out.println("[GrappaSslrParser] Compiled grammar once for parser "
+                        + System.identityHashCode(this)
+                        + " via " + trigger
+                        + " in " + elapsedMillis + " ms");
+                }
+            }
+        }
+        return g;
     }
 
     public static <G extends Grammar> GrappaSslrParser.Builder<G> grappaBuilder(G grammar) {
