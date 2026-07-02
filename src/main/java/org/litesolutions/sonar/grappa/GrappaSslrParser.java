@@ -66,8 +66,6 @@ public class GrappaSslrParser<G extends Grammar> extends Parser<G> {
     public void setRootRule(@Nonnull Rule rootRule) {
         this.rootRule = (RuleDefinition) rootRule;
         this.compiledGrammar = null;
-        System.out.println("[GrappaSslrParser] Root rule changed. Compiled grammar cache cleared for parser "
-            + System.identityHashCode(this));
     }
 
     private CompiledGrammar compileGrammarIfNeeded(String trigger) {
@@ -76,14 +74,8 @@ public class GrappaSslrParser<G extends Grammar> extends Parser<G> {
             synchronized (this) {
                 g = compiledGrammar;
                 if (g == null) {
-                    long startNanos = System.nanoTime();
                     g = MutableGrammarCompiler.compile(rootRule);
                     compiledGrammar = g;
-                    long elapsedMillis = (System.nanoTime() - startNanos) / 1_000_000L;
-                    System.out.println("[GrappaSslrParser] Compiled grammar once for parser "
-                        + System.identityHashCode(this)
-                        + " via " + trigger
-                        + " in " + elapsedMillis + " ms");
                 }
             }
         }
